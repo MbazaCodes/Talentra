@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
-export interface AuthState {
+interface AuthContextType {
   user: User | null;
   loading: boolean;
   roles: string[];
 }
 
-export function useAuth(): AuthState {
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  roles: [],
+});
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<string[]>([]);
@@ -55,18 +60,9 @@ export function useAuth(): AuthState {
     }
   };
 
-  return { user, loading, roles };
+  return <AuthContext.Provider value={{ user, loading, roles }}>{children}</AuthContext.Provider>;
 }
 
-export function useRequireAuth() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate({ to: '/auth' });
-    }
-  }, [user, loading, navigate]);
-
-  return { user, loading };
+export function useAuth() {
+  return useContext(AuthContext);
 }
