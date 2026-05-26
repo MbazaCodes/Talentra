@@ -193,22 +193,24 @@ function ProfileForm({
   );
   const [busy, setBusy] = React.useState(false);
 
-  const profileCompletion = React.useMemo(
-    () =>
-      Math.round(
-        ([
-          headline,
-          bio,
-          location,
-          skills.length > 0,
-          portfolioUrl,
-          profile?.resumeUrl,
-        ].filter(Boolean).length /
-          6) *
-          100,
-      ),
-    [headline, bio, location, portfolioUrl, profile?.resumeUrl, skills.length],
-  );
+  const profileCompletion = React.useMemo(() => {
+    const completed = [
+      headline,
+      bio,
+      location,
+      skills.length > 0,
+      portfolioUrl,
+      profile?.resumeUrl,
+    ].filter(Boolean).length;
+    return Math.round((completed / 6) * 100);
+  }, [
+    headline,
+    bio,
+    location,
+    portfolioUrl,
+    profile?.resumeUrl,
+    skills.length,
+  ]);
 
   const handleAddSkill = () => {
     const trimmed = skillInput.trim();
