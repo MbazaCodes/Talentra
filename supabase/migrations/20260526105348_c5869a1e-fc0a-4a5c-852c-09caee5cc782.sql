@@ -1,3 +1,4 @@
+-- Initial schema: Enums, tables, RLS policies, and triggers
 
 -- Enums
 create type public.app_role as enum ('job_seeker', 'employer', 'admin');
@@ -113,18 +114,18 @@ create policy "Profiles viewable by everyone" on public.profiles for select usin
 create policy "Users insert own profile" on public.profiles for insert with check (auth.uid() = id);
 create policy "Users update own profile" on public.profiles for update using (auth.uid() = id);
 
--- User roles
+-- User roles policies
 create policy "Roles viewable by owner or admin" on public.user_roles for select using (auth.uid() = user_id or public.has_role(auth.uid(),'admin'));
 create policy "Users can self-assign job_seeker or employer" on public.user_roles for insert with check (auth.uid() = user_id and role in ('job_seeker','employer'));
 create policy "Admins manage roles" on public.user_roles for all using (public.has_role(auth.uid(),'admin'));
 
--- Companies
+-- Companies policies
 create policy "Companies viewable by everyone" on public.companies for select using (true);
 create policy "Employers can create companies" on public.companies for insert with check (auth.uid() = owner_id);
 create policy "Owners or admin update companies" on public.companies for update using (auth.uid() = owner_id or public.has_role(auth.uid(),'admin'));
 create policy "Owners or admin delete companies" on public.companies for delete using (auth.uid() = owner_id or public.has_role(auth.uid(),'admin'));
 
--- Jobs
+-- Jobs policies
 create policy "Published jobs viewable by everyone" on public.jobs for select using (status = 'published' or auth.uid() = posted_by or public.has_role(auth.uid(),'admin'));
 create policy "Employers post jobs for own company" on public.jobs for insert with check (
   auth.uid() = posted_by and exists(select 1 from public.companies c where c.id = company_id and c.owner_id = auth.uid())
@@ -132,7 +133,7 @@ create policy "Employers post jobs for own company" on public.jobs for insert wi
 create policy "Owners or admin update jobs" on public.jobs for update using (auth.uid() = posted_by or public.has_role(auth.uid(),'admin'));
 create policy "Owners or admin delete jobs" on public.jobs for delete using (auth.uid() = posted_by or public.has_role(auth.uid(),'admin'));
 
--- Applications
+-- Applications policies
 create policy "Applicant or job owner can view" on public.applications for select using (
   auth.uid() = applicant_id
   or exists(select 1 from public.jobs j where j.id = job_id and j.posted_by = auth.uid())
@@ -144,7 +145,7 @@ create policy "Applicant or job owner update status" on public.applications for 
   or exists(select 1 from public.jobs j where j.id = job_id and j.posted_by = auth.uid())
 );
 
--- Saved jobs
+-- Saved jobs policies
 create policy "User sees own saved jobs" on public.saved_jobs for select using (auth.uid() = user_id);
 create policy "User saves jobs" on public.saved_jobs for insert with check (auth.uid() = user_id);
 create policy "User removes saved jobs" on public.saved_jobs for delete using (auth.uid() = user_id);

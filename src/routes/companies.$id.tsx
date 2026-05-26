@@ -52,7 +52,7 @@ function CompanyPage() {
   return (
     <div className="min-h-screen flex flex-col pb-16 md:pb-0">
       <SiteHeader />
-      <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+      <div className="bg-linear-to-br from-primary to-primary/80 text-primary-foreground">
         <div className="container mx-auto px-4 py-12">
           <div className="flex items-start gap-5">
             {co.logo_url ? (

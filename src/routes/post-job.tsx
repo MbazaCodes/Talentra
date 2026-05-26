@@ -299,7 +299,7 @@ function PostJobPage() {
         .select(
           "id,name,logo_url,website,industry,location,verified,suspended,premium,jobs(status)",
         )
-        .eq("owner_id", user!.uid);
+        .eq("owner_id", user!.id);
       if (error) throw error;
       return (data ?? []) as CompanyOption[];
     },
@@ -1286,7 +1286,7 @@ function PostJobPage() {
       const { data: companyData, error: companyError } = await supabase
         .from("companies")
         .insert({
-          owner_id: user.uid,
+          owner_id: user.id,
           name: data.companyName?.trim() ?? "",
           logo_url: data.companyLogo || null,
           website: data.companyWebsite?.trim() || null,
@@ -1302,7 +1302,7 @@ function PostJobPage() {
       }
       selectedCompanyId = companyData.id;
       if (!roles.includes("employer")) {
-        await supabase.from("user_roles").insert({ user_id: user.uid, role: "employer" });
+        await supabase.from("user_roles").insert({ user_id: user.id, role: "employer" });
       }
     }
 
@@ -1366,7 +1366,7 @@ function PostJobPage() {
       .from("jobs")
       .insert({
         company_id: selectedCompanyId,
-        posted_by: user.uid,
+        posted_by: user.id,
         created_by_role: roles.includes("admin") ? "admin" : "employer",
         title: data.jobTitle.trim(),
         description: details,

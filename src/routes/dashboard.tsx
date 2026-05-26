@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Briefcase, Bookmark, FileText, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Briefcase, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SiteHeader, SiteFooter, MobileBottomNav } from "@/components/site-chrome";
-import { auth } from "@/integrations/firebase/client";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
@@ -23,17 +22,14 @@ import {
   saveUserProfile,
   uploadResumeFile,
   SeekerProfile,
-} from "@/lib/firebase-data";
-import { sendEmailVerification } from "firebase/auth";
+} from "@/lib/supabase-data";
 
 export const Route = createFileRoute("/dashboard")({ component: Dashboard });
 
 type EmployerJob = Pick<
   Database["public"]["Tables"]["jobs"]["Row"],
   "id" | "title" | "status" | "created_at"
-> & {
-  companies: { name: string } | null;
-};
+> & { companies: { name: string } | null };
 
 function Dashboard() {
   const { user, loading, roles } = useAuth();
@@ -45,13 +41,11 @@ function Dashboard() {
   }, [user, loading, navigate]);
 
   const isEmployer = roles.includes("employer") || roles.includes("admin");
-
   const profileQuery = useQuery({
-    queryKey: ["firebase-profile", user?.uid],
-    enabled: !!user?.uid,
-    queryFn: () => getUserProfile(user!.uid),
+    queryKey: ["supabase-profile", user?.id],
+    enabled: !!user?.id,
+    queryFn: () => getUserProfile(user!.id),
   });
-
   const { data: profile } = profileQuery;
 
   const suggestions = React.useMemo(() => {
@@ -79,14 +73,13 @@ function Dashboard() {
         title: "Upload your resume",
         description: "Let employers review your experience quickly.",
       });
-    if (items.length === 0) {
+    if (items.length === 0)
       items.push({
         title: isEmployer ? "Post a new job" : "Explore roles",
         description: isEmployer
           ? "Keep your employer brand visible."
           : "Apply to opportunities with your updated profile.",
       });
-    }
     return items;
   }, [profile, isEmployer, user]);
 
@@ -109,8 +102,7 @@ function Dashboard() {
                 : "Member"}
           </Badge>
         </div>
-
-        {suggestions.length > 0 ? (
+        {suggestions.length > 0 && (
           <Alert className="mt-6">
             <AlertTitle>Profile suggestion</AlertTitle>
             <AlertDescription>
@@ -119,8 +111,7 @@ function Dashboard() {
                 : "Complete your seeker profile to improve job matches."}
             </AlertDescription>
           </Alert>
-        ) : null}
-
+        )}
         <div className="grid gap-4 mt-6 md:grid-cols-2">
           {suggestions.map((item) => (
             <Card key={item.title} className="p-5">
@@ -129,26 +120,25 @@ function Dashboard() {
             </Card>
           ))}
         </div>
-
         <Tabs defaultValue={isEmployer ? "employer" : "seeker"} className="mt-6">
           <TabsList>
             <TabsTrigger value="seeker">Job seeker</TabsTrigger>
-            {isEmployer ? <TabsTrigger value="employer">Employer</TabsTrigger> : null}
+            {isEmployer && <TabsTrigger value="employer">Employer</TabsTrigger>}
           </TabsList>
           <TabsContent value="seeker">
             <SeekerView
               user={user}
               profile={profile ?? null}
               refetchProfile={() =>
-                queryClient.invalidateQueries({ queryKey: ["firebase-profile", user.uid] })
+                queryClient.invalidateQueries({ queryKey: ["supabase-profile", user.id] })
               }
             />
           </TabsContent>
-          {isEmployer ? (
+          {isEmployer && (
             <TabsContent value="employer">
-              <EmployerView userId={user.uid} />
+              <EmployerView userId={user.id} />
             </TabsContent>
-          ) : null}
+          )}
         </Tabs>
       </div>
       <SiteFooter />
@@ -157,13 +147,21 @@ function Dashboard() {
   );
 }
 
-type ProfileFormProps = {
-  user: { uid: string; email: string | null };
+function ProfileForm({
+  user,
+  profile,
+  onSave,
+}: {
+  user: {
+    id: string;
+    email?: string | null;
+    user_metadata?: {
+      email_confirmed?: boolean;
+    };
+  };
   profile: SeekerProfile | null;
   onSave: () => void;
-};
-
-function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
+}) {
   const [fullName, setFullName] = React.useState(profile?.full_name ?? "");
   const [headline, setHeadline] = React.useState(profile?.headline ?? "");
   const [location, setLocation] = React.useState(profile?.location ?? "");
@@ -175,45 +173,32 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
   const [education, setEducation] = React.useState((profile?.education ?? []).join("\n"));
   const [busy, setBusy] = React.useState(false);
 
-  React.useEffect(() => {
-    if (!profile) return;
-    setFullName(profile.full_name);
-    setHeadline(profile.headline ?? "");
-    setLocation(profile.location ?? "");
-    setBio(profile.bio ?? "");
-    setPortfolioUrl(profile.portfolioUrl ?? "");
-    setSkills(profile.skills ?? []);
-    setExperience((profile.experience ?? []).join("\n"));
-    setEducation((profile.education ?? []).join("\n"));
-  }, [profile]);
-
-  const profileCompletion = React.useMemo(() => {
-    const completed = [
-      headline,
-      bio,
-      location,
-      skills.length > 0,
-      portfolioUrl,
-      profile?.resumeUrl,
-    ].filter(Boolean).length;
-    return Math.round((completed / 6) * 100);
-  }, [headline, bio, location, portfolioUrl, profile?.resumeUrl, skills.length]);
+  const profileCompletion = React.useMemo(
+    () =>
+      Math.round(
+        ([headline, bio, location, skills.length > 0, portfolioUrl, profile?.resumeUrl].filter(
+          Boolean,
+        ).length /
+          6) *
+          100,
+      ),
+    [headline, bio, location, portfolioUrl, profile?.resumeUrl, skills.length],
+  );
 
   const handleAddSkill = () => {
     const trimmed = skillInput.trim();
     if (!trimmed || skills.includes(trimmed)) return;
-    setSkills((current) => [...current, trimmed]);
+    setSkills([...skills, trimmed]);
     setSkillInput("");
   };
-
   const handleRemoveSkill = (skill: string) => {
-    setSkills((current) => current.filter((item) => item !== skill));
+    setSkills(skills.filter((s) => s !== skill));
   };
 
   const saveProfile = async () => {
     setBusy(true);
     try {
-      await saveUserProfile(user.uid, {
+      await saveUserProfile(user.id, {
         full_name: fullName,
         email: user.email ?? "",
         headline,
@@ -223,11 +208,11 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
         skills,
         experience: experience
           .split("\n")
-          .map((item) => item.trim())
+          .map((s) => s.trim())
           .filter(Boolean),
         education: education
           .split("\n")
-          .map((item) => item.trim())
+          .map((s) => s.trim())
           .filter(Boolean),
         verified: profile?.verified ?? false,
       });
@@ -245,7 +230,7 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
     if (!file) return;
     setBusy(true);
     try {
-      await uploadResumeFile(user.uid, file);
+      await uploadResumeFile(user.id, file);
       toast.success("Resume uploaded successfully");
       onSave();
     } catch (error) {
@@ -272,13 +257,13 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
           <div className="space-y-4">
             <div>
               <Label>Full name</Label>
-              <Input value={fullName} onChange={(event) => setFullName(event.target.value)} />
+              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
             </div>
             <div>
               <Label>Headline</Label>
               <Input
                 value={headline}
-                onChange={(event) => setHeadline(event.target.value)}
+                onChange={(e) => setHeadline(e.target.value)}
                 placeholder="Example: Product Designer with 5 years in fintech"
               />
             </div>
@@ -286,7 +271,7 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
               <Label>Location</Label>
               <Input
                 value={location}
-                onChange={(event) => setLocation(event.target.value)}
+                onChange={(e) => setLocation(e.target.value)}
                 placeholder="City, region"
               />
             </div>
@@ -295,7 +280,7 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
               <Input
                 type="url"
                 value={portfolioUrl}
-                onChange={(event) => setPortfolioUrl(event.target.value)}
+                onChange={(e) => setPortfolioUrl(e.target.value)}
                 placeholder="https://"
               />
             </div>
@@ -305,7 +290,7 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
               <Label>Bio</Label>
               <Textarea
                 value={bio}
-                onChange={(event) => setBio(event.target.value)}
+                onChange={(e) => setBio(e.target.value)}
                 rows={6}
                 placeholder="Summarize your role, goals, and what you bring to a team."
               />
@@ -315,7 +300,7 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
               <div className="flex gap-2 mt-2">
                 <Input
                   value={skillInput}
-                  onChange={(event) => setSkillInput(event.target.value)}
+                  onChange={(e) => setSkillInput(e.target.value)}
                   placeholder="Add a skill"
                 />
                 <Button type="button" variant="secondary" onClick={handleAddSkill}>
@@ -337,13 +322,12 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
             </div>
           </div>
         </div>
-
         <div className="grid gap-4 mt-6 md:grid-cols-2">
           <div>
             <Label>Experience</Label>
             <Textarea
               value={experience}
-              onChange={(event) => setExperience(event.target.value)}
+              onChange={(e) => setExperience(e.target.value)}
               rows={5}
               placeholder="One role per line"
             />
@@ -352,18 +336,17 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
             <Label>Education</Label>
             <Textarea
               value={education}
-              onChange={(event) => setEducation(event.target.value)}
+              onChange={(e) => setEducation(e.target.value)}
               rows={5}
               placeholder="One qualification per line"
             />
           </div>
         </div>
-
         <div className="grid gap-4 mt-6 md:grid-cols-2 items-end">
           <div>
             <Label>Resume</Label>
             <Input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
-            {profile?.resumeUrl ? (
+            {profile?.resumeUrl && (
               <p className="text-sm text-muted-foreground mt-2">
                 Resume uploaded.{" "}
                 <a
@@ -376,16 +359,15 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
                 </a>
                 .
               </p>
-            ) : null}
+            )}
           </div>
           <div className="text-right">
             <Button
-              type="button"
               className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground"
               onClick={saveProfile}
               disabled={busy}
             >
-              {busy ? "Saving…" : "Save profile"}
+              {busy ? "Saving" : "Save profile"}
             </Button>
           </div>
         </div>
@@ -394,31 +376,38 @@ function ProfileForm({ user, profile, onSave }: ProfileFormProps) {
   );
 }
 
-type SeekerViewProps = {
-  user: { uid: string; email: string | null };
+function SeekerView({
+  user,
+  profile,
+  refetchProfile,
+}: {
+  user: {
+    id: string;
+    email?: string | null;
+    user_metadata?: {
+      email_confirmed?: boolean;
+    };
+  };
   profile: SeekerProfile | null;
   refetchProfile: () => void;
-};
-
-function SeekerView({ user, profile, refetchProfile }: SeekerViewProps) {
+}) {
   const { data: applications } = useQuery({
-    queryKey: ["firebase-applications", user.uid],
-    queryFn: () => fetchUserApplications(user.uid),
-    enabled: !!user.uid,
+    queryKey: ["supabase-applications", user.id],
+    queryFn: () => fetchUserApplications(user.id),
+    enabled: !!user.id,
   });
-
   const { data: savedJobs } = useQuery({
-    queryKey: ["firebase-saved-jobs", user.uid],
-    queryFn: () => fetchSavedJobs(user.uid),
-    enabled: !!user.uid,
+    queryKey: ["supabase-saved-jobs", user.id],
+    queryFn: () => fetchSavedJobs(user.id),
+    enabled: !!user.id,
   });
-
-  const completeStatus = profile?.verified || auth?.currentUser?.emailVerified;
+  const completeStatus = profile?.verified || user?.user_metadata?.email_confirmed;
 
   const handleSendVerification = async () => {
-    if (!auth?.currentUser) return;
+    if (!user?.email) return;
     try {
-      await sendEmailVerification(auth.currentUser, { url: `${window.location.origin}/dashboard` });
+      const { error } = await supabase.auth.resend({ type: "signup", email: user.email });
+      if (error) throw error;
       toast.success("Verification email sent. Check your inbox.");
     } catch (error) {
       toast.error((error as Error).message || "Unable to send verification email.");
@@ -429,7 +418,6 @@ function SeekerView({ user, profile, refetchProfile }: SeekerViewProps) {
     <div className="grid gap-4 lg:grid-cols-[1.6fr_0.9fr] mt-4">
       <div className="space-y-4">
         <ProfileForm user={user} profile={profile} onSave={refetchProfile} />
-
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -442,15 +430,15 @@ function SeekerView({ user, profile, refetchProfile }: SeekerViewProps) {
           </div>
           <div className="space-y-3">
             {applications?.length ? (
-              applications.map((application) => (
-                <div key={application.id} className="rounded-xl border border-border p-4">
+              applications.map((app) => (
+                <div key={app.id} className="rounded-xl border border-border p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-medium">{application.jobTitle}</p>
-                      <p className="text-sm text-muted-foreground">{application.companyName}</p>
+                      <p className="font-medium">{app.jobTitle}</p>
+                      <p className="text-sm text-muted-foreground">{app.companyName}</p>
                     </div>
                     <Badge variant="outline" className="uppercase text-[10px]">
-                      {application.status}
+                      {app.status}
                     </Badge>
                   </div>
                 </div>
@@ -464,7 +452,6 @@ function SeekerView({ user, profile, refetchProfile }: SeekerViewProps) {
           </div>
         </Card>
       </div>
-
       <div className="space-y-4">
         <Card className="p-5">
           <div className="flex items-center gap-3">
@@ -496,17 +483,16 @@ function SeekerView({ user, profile, refetchProfile }: SeekerViewProps) {
                 )}
               </div>
             </div>
-            {!completeStatus ? (
+            {!completeStatus && (
               <Button
                 onClick={handleSendVerification}
                 className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
               >
                 Send verification email
               </Button>
-            ) : null}
+            )}
           </div>
         </Card>
-
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -547,7 +533,6 @@ function EmployerView({ userId }: { userId: string }) {
       return data ?? [];
     },
   });
-
   return (
     <div className="mt-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -560,28 +545,25 @@ function EmployerView({ userId }: { userId: string }) {
       </div>
       <Card className="p-0 divide-y divide-border">
         {jobs?.length ? (
-          jobs.map((j: EmployerJob) => {
-            const co = j.companies;
-            return (
-              <div key={j.id} className="p-4 flex items-center justify-between">
-                <div>
-                  <Link
-                    to="/jobs/$id"
-                    params={{ id: j.id }}
-                    className="font-medium hover:text-accent"
-                  >
-                    {j.title}
-                  </Link>
-                  <div className="text-xs text-muted-foreground">
-                    {co?.name} · {new Date(j.created_at).toLocaleDateString()}
-                  </div>
+          jobs.map((j: EmployerJob) => (
+            <div key={j.id} className="p-4 flex items-center justify-between">
+              <div>
+                <Link
+                  to="/jobs/$id"
+                  params={{ id: String(j.id) }}
+                  className="font-medium hover:text-accent"
+                >
+                  {j.title}
+                </Link>
+                <div className="text-xs text-muted-foreground">
+                  {j.companies?.name} {new Date(j.created_at).toLocaleDateString()}
                 </div>
-                <Badge variant="outline" className="uppercase text-[10px]">
-                  {j.status}
-                </Badge>
               </div>
-            );
-          })
+              <Badge variant="outline" className="uppercase text-[10px]">
+                {j.status}
+              </Badge>
+            </div>
+          ))
         ) : (
           <div className="p-8 text-center text-sm text-muted-foreground">No jobs posted yet.</div>
         )}

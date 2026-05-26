@@ -1,7 +1,6 @@
 import * as React from "react";
-import { onAuthStateChanged, signOut as firebaseSignOut, User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/integrations/firebase/client";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 type Role = "job_seeker" | "employer" | "admin";
 
@@ -28,44 +27,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [roles, setRoles] = React.useState<Role[]>([]);
   const [loading, setLoading] = React.useState(true);
 
-  const loadRoles = React.useCallback(async (uid: string | undefined) => {
-    if (!uid || !db) return setRoles([]);
-    const snapshot = await getDoc(doc(db, "users", uid));
-    if (!snapshot.exists()) return setRoles([]);
-    const data = snapshot.data() as { role?: Role };
-    setRoles(data.role ? [data.role] : []);
+  const loadRoles = React.useCallback(async (userId: string | undefined) => {
+    if (!userId) return setRoles([]);
+
+    const { data: rolesData, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("Error loading roles:", error);
+      return setRoles([]);
+    }
+
+    setRoles(rolesData?.map((r) => r.role as Role) || []);
   }, []);
 
   React.useEffect(() => {
-    if (!auth) {
-      setUser(null);
-      setRoles([]);
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      if (firebaseUser) {
-        await loadRoles(firebaseUser.uid);
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadRoles(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        await loadRoles(session.user.id);
       } else {
         setRoles([]);
       }
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => subscription.unsubscribe();
   }, [loadRoles]);
 
   const signOut = React.useCallback(async () => {
-    if (!auth) return;
-    await firebaseSignOut(auth);
+    await supabase.auth.signOut();
   }, []);
 
   const refreshRoles = React.useCallback(async () => {
-    await loadRoles(user?.uid);
-  }, [user?.uid, loadRoles]);
+    await loadRoles(user?.id);
+  }, [user?.id, loadRoles]);
 
   const value = React.useMemo(
     () => ({ user, session: null, roles, loading, signOut, refreshRoles }),
