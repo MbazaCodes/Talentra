@@ -1,23 +1,23 @@
-import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import * as React from 'react';
+import { createFileRoute } from '@tanstack/react-router';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card } from '@/components/ui/card';
+import { SiteHeader, SiteFooter } from '@/components/site-chrome';
 
-export const Route = createFileRoute("/contact")({ component: Contact });
+export const Route = createFileRoute('/contact')({ component: Contact });
 
 function Contact() {
-  const [form, setForm] = React.useState({ name: "", email: "", message: "" });
+  const [form, setForm] = React.useState({ name: '', email: '', message: '' });
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim() || !form.message.trim())
-      return toast.error("Please fill in all fields");
+      return toast.error('Please fill in all fields');
     toast.success("Thanks! We'll be in touch shortly.");
-    setForm({ name: "", email: "", message: "" });
+    setForm({ name: '', email: '', message: '' });
   };
   return (
     <div className="min-h-screen flex flex-col">
@@ -55,10 +55,7 @@ function Contact() {
                 maxLength={2000}
               />
             </div>
-            <Button
-              type="submit"
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-            >
+            <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground">
               Send message
             </Button>
           </form>

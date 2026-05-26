@@ -1,10 +1,10 @@
-import * as React from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
-import { useAuth } from "@/lib/auth";
+import * as React from 'react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
+import { SiteHeader, SiteFooter } from '@/components/site-chrome';
+import { useAuth } from '@/lib/auth';
 
-export const Route = createFileRoute("/job-seekers")({
+export const Route = createFileRoute('/job-seekers')({
   component: JobSeekersPage,
 });
 
@@ -14,7 +14,7 @@ function JobSeekersPage() {
 
   React.useEffect(() => {
     if (!loading && !user) {
-      navigate({ to: "/auth" });
+      navigate({ to: '/auth' });
     }
   }, [user, loading, navigate]);
 
@@ -33,8 +33,8 @@ function JobSeekersPage() {
               Find your next role with Talentra
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
-              Browse Tanzania's latest job opportunities, get matched with top
-              employers, and apply with confidence.
+              Browse Tanzania's latest job opportunities, get matched with top employers, and apply
+              with confidence.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
@@ -52,27 +52,19 @@ function JobSeekersPage() {
 
           <section className="grid gap-6 md:grid-cols-3">
             <div className="rounded-3xl border border-border bg-background p-6">
-              <h2 className="font-display text-xl font-semibold">
-                Search fast
-              </h2>
+              <h2 className="font-display text-xl font-semibold">Search fast</h2>
               <p className="mt-3 text-sm text-muted-foreground">
-                Filter listings by role, region, and industry so you see the
-                right jobs quickly.
+                Filter listings by role, region, and industry so you see the right jobs quickly.
               </p>
             </div>
             <div className="rounded-3xl border border-border bg-background p-6">
-              <h2 className="font-display text-xl font-semibold">
-                Trusted employers
-              </h2>
+              <h2 className="font-display text-xl font-semibold">Trusted employers</h2>
               <p className="mt-3 text-sm text-muted-foreground">
-                Apply to verified companies and stay in control of your job
-                search.
+                Apply to verified companies and stay in control of your job search.
               </p>
             </div>
             <div className="rounded-3xl border border-border bg-background p-6">
-              <h2 className="font-display text-xl font-semibold">
-                Career growth
-              </h2>
+              <h2 className="font-display text-xl font-semibold">Career growth</h2>
               <p className="mt-3 text-sm text-muted-foreground">
                 Find jobs in tech, finance, healthcare, hospitality and more.
               </p>
@@ -80,9 +72,7 @@ function JobSeekersPage() {
           </section>
 
           <section className="rounded-3xl border border-border bg-card p-10">
-            <h2 className="font-display text-3xl font-semibold">
-              Getting started
-            </h2>
+            <h2 className="font-display text-3xl font-semibold">Getting started</h2>
             <ul className="mt-6 space-y-4 text-sm text-foreground/80">
               <li className="space-y-2">
                 <strong className="block font-semibold">Search jobs</strong>
@@ -91,9 +81,7 @@ function JobSeekersPage() {
                 </span>
               </li>
               <li className="space-y-2">
-                <strong className="block font-semibold">
-                  Save opportunities
-                </strong>
+                <strong className="block font-semibold">Save opportunities</strong>
                 <span className="block text-muted-foreground">
                   Bookmark listings you want to revisit and apply when ready.
                 </span>
@@ -101,8 +89,7 @@ function JobSeekersPage() {
               <li className="space-y-2">
                 <strong className="block font-semibold">Apply directly</strong>
                 <span className="block text-muted-foreground">
-                  Reach employers through the platform and track your
-                  applications.
+                  Reach employers through the platform and track your applications.
                 </span>
               </li>
             </ul>

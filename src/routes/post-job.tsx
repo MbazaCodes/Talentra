@@ -1,9 +1,9 @@
-import * as React from "react";
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import * as React from 'react';
+import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import {
   ArrowRight,
   ArrowLeft,
@@ -14,25 +14,25 @@ import {
   Sparkles,
   Globe,
   CheckCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SiteHeader, SiteFooter } from "@/components/site-chrome";
-import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
-import { useAuth } from "@/lib/auth";
-import { INDUSTRIES } from "@/lib/kazi-data";
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { SiteHeader, SiteFooter } from '@/components/site-chrome';
+import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+import { useAuth } from '@/lib/auth';
+import { INDUSTRIES } from '@/lib/kazi-data';
 import {
   Form,
   FormField,
@@ -41,101 +41,98 @@ import {
   FormControl,
   FormDescription,
   FormMessage,
-} from "@/components/ui/form";
-import * as z from "zod";
+} from '@/components/ui/form';
+import * as z from 'zod';
 
-const DRAFT_KEY = "talentra-job-draft";
+const DRAFT_KEY = 'talentra-job-draft';
 
 type CompanyOption = Pick<
-  Database["public"]["Tables"]["companies"]["Row"],
-  | "id"
-  | "name"
-  | "logo_url"
-  | "website"
-  | "industry"
-  | "location"
-  | "verified"
-  | "suspended"
-  | "premium"
+  Database['public']['Tables']['companies']['Row'],
+  | 'id'
+  | 'name'
+  | 'logo_url'
+  | 'website'
+  | 'industry'
+  | 'location'
+  | 'verified'
+  | 'suspended'
+  | 'premium'
 > & {
-  jobs?: Pick<Database["public"]["Tables"]["jobs"]["Row"], "status">[];
+  jobs?: Pick<Database['public']['Tables']['jobs']['Row'], 'status'>[];
 };
 
 const JOB_TYPES = [
-  { value: "full_time", label: "Full-Time" },
-  { value: "part_time", label: "Part-Time" },
-  { value: "contract", label: "Contract" },
-  { value: "internship", label: "Internship" },
-  { value: "remote", label: "Remote" },
-  { value: "freelance", label: "Freelance" },
+  { value: 'full_time', label: 'Full-Time' },
+  { value: 'part_time', label: 'Part-Time' },
+  { value: 'contract', label: 'Contract' },
+  { value: 'internship', label: 'Internship' },
+  { value: 'remote', label: 'Remote' },
+  { value: 'freelance', label: 'Freelance' },
 ] as const;
 
 const JOB_CATEGORIES = [
-  { value: "software", label: "Software & IT" },
-  { value: "sales", label: "Sales & Business Development" },
-  { value: "marketing", label: "Marketing" },
-  { value: "operations", label: "Operations" },
-  { value: "finance", label: "Finance" },
-  { value: "healthcare", label: "Healthcare" },
-  { value: "education", label: "Education" },
-  { value: "hr", label: "HR & Recruitment" },
+  { value: 'software', label: 'Software & IT' },
+  { value: 'sales', label: 'Sales & Business Development' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'operations', label: 'Operations' },
+  { value: 'finance', label: 'Finance' },
+  { value: 'healthcare', label: 'Healthcare' },
+  { value: 'education', label: 'Education' },
+  { value: 'hr', label: 'HR & Recruitment' },
 ] as const;
 
 const EXPERIENCE_LEVELS = [
-  { value: "entry", label: "Entry" },
-  { value: "mid", label: "Mid" },
-  { value: "senior", label: "Senior" },
-  { value: "executive", label: "Executive" },
+  { value: 'entry', label: 'Entry' },
+  { value: 'mid', label: 'Mid' },
+  { value: 'senior', label: 'Senior' },
+  { value: 'executive', label: 'Executive' },
 ] as const;
 
 const EDUCATION_LEVELS = [
-  { value: "certificate", label: "Certificate" },
-  { value: "diploma", label: "Diploma" },
-  { value: "bachelors", label: "Bachelor's" },
-  { value: "masters", label: "Master's" },
-  { value: "phd", label: "PhD" },
-  { value: "professional", label: "Professional" },
+  { value: 'certificate', label: 'Certificate' },
+  { value: 'diploma', label: 'Diploma' },
+  { value: 'bachelors', label: "Bachelor's" },
+  { value: 'masters', label: "Master's" },
+  { value: 'phd', label: 'PhD' },
+  { value: 'professional', label: 'Professional' },
 ] as const;
 
-const CURRENCIES = ["TZS", "USD", "KES", "UGX", "EUR"] as const;
+const CURRENCIES = ['TZS', 'USD', 'KES', 'UGX', 'EUR'] as const;
 
 const SALARY_TYPES = [
-  { value: "exact", label: "Exact" },
-  { value: "range", label: "Range" },
-  { value: "undisclosed", label: "Undisclosed" },
+  { value: 'exact', label: 'Exact' },
+  { value: 'range', label: 'Range' },
+  { value: 'undisclosed', label: 'Undisclosed' },
 ] as const;
 
 const APPLY_METHODS = [
-  { value: "email", label: "Apply via Email" },
-  { value: "url", label: "External URL" },
-  { value: "internal", label: "Internal Platform" },
+  { value: 'email', label: 'Apply via Email' },
+  { value: 'url', label: 'External URL' },
+  { value: 'internal', label: 'Internal Platform' },
 ] as const;
 
-const JOB_TYPE_TO_CONTRACT: Record<
-  (typeof JOB_TYPES)[number]["value"],
-  string
-> = {
-  full_time: "permanent",
-  part_time: "contract",
-  contract: "contract",
-  internship: "internship",
-  remote: "permanent",
-  freelance: "freelance",
+const JOB_TYPE_TO_CONTRACT: Record<(typeof JOB_TYPES)[number]['value'], string> = {
+  full_time: 'permanent',
+  part_time: 'contract',
+  contract: 'contract',
+  internship: 'internship',
+  remote: 'permanent',
+  freelance: 'freelance',
 };
 
 const slugify = (value: string) =>
   value
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 
-const numberOnly = (value: string) => value.replace(/[^0-9]/g, "");
+const numberOnly = (value: string) => value.replace(/[^0-9]/g, '');
 
 const formatDisplayNumber = (value: string) => {
   const number = Number(numberOnly(value));
-  if (!number) return "";
-  return new Intl.NumberFormat("en-US").format(number);
+  if (!number) return '';
+  return new Intl.NumberFormat('en-US').format(number);
 };
 
 const schema = z
@@ -149,13 +146,9 @@ const schema = z
     jobTitle: z.string().min(3),
     slug: z.string(),
     category: z.string().min(1),
-    jobType: z.enum(
-      JOB_TYPES.map((item) => item.value) as [string, ...string[]],
-    ),
+    jobType: z.enum(JOB_TYPES.map((item) => item.value) as [string, ...string[]]),
     location: z.string().min(2),
-    salaryType: z.enum(
-      SALARY_TYPES.map((item) => item.value) as [string, ...string[]],
-    ),
+    salaryType: z.enum(SALARY_TYPES.map((item) => item.value) as [string, ...string[]]),
     salary: z.string().optional(),
     salaryMin: z.string().optional(),
     salaryMax: z.string().optional(),
@@ -163,16 +156,10 @@ const schema = z
     description: z.string().min(30),
     requirements: z.string().min(20),
     responsibilities: z.string().min(20),
-    experienceLevel: z.enum(
-      EXPERIENCE_LEVELS.map((item) => item.value) as [string, ...string[]],
-    ),
-    educationLevel: z.enum(
-      EDUCATION_LEVELS.map((item) => item.value) as [string, ...string[]],
-    ),
+    experienceLevel: z.enum(EXPERIENCE_LEVELS.map((item) => item.value) as [string, ...string[]]),
+    educationLevel: z.enum(EDUCATION_LEVELS.map((item) => item.value) as [string, ...string[]]),
     deadline: z.string().optional(),
-    applyMethod: z.enum(
-      APPLY_METHODS.map((item) => item.value) as [string, ...string[]],
-    ),
+    applyMethod: z.enum(APPLY_METHODS.map((item) => item.value) as [string, ...string[]]),
     applyEmail: z.string().optional(),
     applyUrl: z.string().optional(),
     featured: z.boolean(),
@@ -181,119 +168,117 @@ const schema = z
   })
   .superRefine((data, ctx) => {
     const today = new Date();
-    if (data.companyId === "new") {
+    if (data.companyId === 'new') {
       if (!data.companyName?.trim()) {
         ctx.addIssue({
-          path: ["companyName"],
+          path: ['companyName'],
           code: z.ZodIssueCode.custom,
-          message: "Company name is required for a new employer profile.",
+          message: 'Company name is required for a new employer profile.',
         });
       }
       if (!data.industry?.trim()) {
         ctx.addIssue({
-          path: ["industry"],
+          path: ['industry'],
           code: z.ZodIssueCode.custom,
-          message: "Industry is required when creating a company.",
+          message: 'Industry is required when creating a company.',
         });
       }
       if (!data.companyLocation?.trim()) {
         ctx.addIssue({
-          path: ["companyLocation"],
+          path: ['companyLocation'],
           code: z.ZodIssueCode.custom,
-          message: "Company location is required.",
+          message: 'Company location is required.',
         });
       }
     }
 
-    if (data.salaryType === "exact" && !numberOnly(data.salary || "")) {
+    if (data.salaryType === 'exact' && !numberOnly(data.salary || '')) {
       ctx.addIssue({
-        path: ["salary"],
+        path: ['salary'],
         code: z.ZodIssueCode.custom,
-        message: "Enter the exact salary amount.",
+        message: 'Enter the exact salary amount.',
       });
     }
 
-    if (data.salaryType === "range") {
-      const min = Number(numberOnly(data.salaryMin || ""));
-      const max = Number(numberOnly(data.salaryMax || ""));
+    if (data.salaryType === 'range') {
+      const min = Number(numberOnly(data.salaryMin || ''));
+      const max = Number(numberOnly(data.salaryMax || ''));
       if (!min) {
         ctx.addIssue({
-          path: ["salaryMin"],
+          path: ['salaryMin'],
           code: z.ZodIssueCode.custom,
-          message: "Enter the minimum salary.",
+          message: 'Enter the minimum salary.',
         });
       }
       if (!max) {
         ctx.addIssue({
-          path: ["salaryMax"],
+          path: ['salaryMax'],
           code: z.ZodIssueCode.custom,
-          message: "Enter the maximum salary.",
+          message: 'Enter the maximum salary.',
         });
       }
       if (min && max && min > max) {
         ctx.addIssue({
-          path: ["salaryMax"],
+          path: ['salaryMax'],
           code: z.ZodIssueCode.custom,
-          message: "Maximum salary must be greater than minimum salary.",
+          message: 'Maximum salary must be greater than minimum salary.',
         });
       }
     }
 
-    if (data.applyMethod === "email" && !data.applyEmail?.trim()) {
+    if (data.applyMethod === 'email' && !data.applyEmail?.trim()) {
       ctx.addIssue({
-        path: ["applyEmail"],
+        path: ['applyEmail'],
         code: z.ZodIssueCode.custom,
-        message: "Email is required for application by email.",
+        message: 'Email is required for application by email.',
       });
     }
 
-    if (data.applyMethod === "url" && !data.applyUrl?.trim()) {
+    if (data.applyMethod === 'url' && !data.applyUrl?.trim()) {
       ctx.addIssue({
-        path: ["applyUrl"],
+        path: ['applyUrl'],
         code: z.ZodIssueCode.custom,
-        message: "Application URL is required.",
+        message: 'Application URL is required.',
       });
     }
 
-    if (data.applyUrl?.trim() && data.applyMethod === "url") {
+    if (data.applyUrl?.trim() && data.applyMethod === 'url') {
       try {
         new URL(data.applyUrl);
       } catch {
         ctx.addIssue({
-          path: ["applyUrl"],
+          path: ['applyUrl'],
           code: z.ZodIssueCode.custom,
-          message: "Enter a valid URL.",
+          message: 'Enter a valid URL.',
         });
       }
     }
 
     if (
       data.applyEmail?.trim() &&
-      data.applyMethod === "email" &&
+      data.applyMethod === 'email' &&
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.applyEmail)
     ) {
       ctx.addIssue({
-        path: ["applyEmail"],
+        path: ['applyEmail'],
         code: z.ZodIssueCode.custom,
-        message: "Enter a valid email address.",
+        message: 'Enter a valid email address.',
       });
     }
 
     if (data.deadline) {
-      const selected = new Date(data.deadline + "T00:00:00");
-      if (
-        selected < new Date(today.toISOString().split("T")[0] + "T00:00:00")
-      ) {
+      const selected = new Date(data.deadline + 'T00:00:00');
+      if (selected < new Date(today.toISOString().split('T')[0] + 'T00:00:00')) {
         ctx.addIssue({
-          path: ["deadline"],
+          path: ['deadline'],
           code: z.ZodIssueCode.custom,
-          message: "Deadline cannot be in the past.",
+          message: 'Deadline cannot be in the past.',
         });
       }
     }
   });
 
-export const Route = createFileRoute("/post-job")({ component: PostJobPage });
+export const Route = createFileRoute('/post-job')({ component: PostJobPage });
 
 function PostJobPage() {
   const { user, roles, loading } = useAuth();
@@ -302,19 +287,19 @@ function PostJobPage() {
   const [step, setStep] = React.useState(1);
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const [logoProgress, setLogoProgress] = React.useState(0);
-  const [draftSavedAt, setDraftSavedAt] = React.useState("");
+  const [draftSavedAt, setDraftSavedAt] = React.useState('');
   const [dragging, setDragging] = React.useState(false);
 
   const { data: companies, isLoading: companiesLoading } = useQuery({
-    queryKey: ["my-companies"],
+    queryKey: ['my-companies'],
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("companies")
+        .from('companies')
         .select(
-          "id,name,logo_url,website,industry,location,verified,suspended,premium,jobs(status)",
+          'id,name,logo_url,website,industry,location,verified,suspended,premium,jobs(status)',
         )
-        .eq("owner_id", user!.id);
+        .eq('owner_id', user!.id);
       if (error) throw error;
       return (data ?? []) as CompanyOption[];
     },
@@ -322,54 +307,45 @@ function PostJobPage() {
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    mode: "onBlur",
+    mode: 'onBlur',
     defaultValues: {
-      companyId: "new",
-      companyName: "",
-      companyLogo: "",
-      companyWebsite: "",
-      industry: "",
-      companyLocation: "",
-      jobTitle: "",
-      slug: "",
-      category: "software",
-      jobType: "full_time",
-      location: "",
-      salaryType: "undisclosed",
-      salary: "",
-      salaryMin: "",
-      salaryMax: "",
-      currency: "TZS",
-      description: "",
-      requirements: "",
-      responsibilities: "",
-      experienceLevel: "mid",
-      educationLevel: "bachelors",
-      deadline: "",
-      applyMethod: "email",
-      applyEmail: "",
-      applyUrl: "",
+      companyId: 'new',
+      companyName: '',
+      companyLogo: '',
+      companyWebsite: '',
+      industry: '',
+      companyLocation: '',
+      jobTitle: '',
+      slug: '',
+      category: 'software',
+      jobType: 'full_time',
+      location: '',
+      salaryType: 'undisclosed',
+      salary: '',
+      salaryMin: '',
+      salaryMax: '',
+      currency: 'TZS',
+      description: '',
+      requirements: '',
+      responsibilities: '',
+      experienceLevel: 'mid',
+      educationLevel: 'bachelors',
+      deadline: '',
+      applyMethod: 'email',
+      applyEmail: '',
+      applyUrl: '',
       featured: false,
       urgent: false,
       remoteFriendly: false,
     },
   });
 
-  const {
-    control,
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    reset,
-    trigger,
-    formState,
-  } = form;
+  const { control, register, handleSubmit, watch, setValue, reset, trigger, formState } = form;
   const values = watch();
 
   React.useEffect(() => {
     if (!loading && !user) {
-      navigate({ to: "/auth" });
+      navigate({ to: '/auth' });
     }
   }, [user, loading, navigate]);
 
@@ -377,10 +353,10 @@ function PostJobPage() {
     if (
       !companiesLoading &&
       companies?.length &&
-      values.companyId === "new" &&
+      values.companyId === 'new' &&
       !localStorage.getItem(DRAFT_KEY)
     ) {
-      setValue("companyId", companies[0].id);
+      setValue('companyId', companies[0].id);
     }
   }, [companies, companiesLoading, values.companyId, setValue]);
 
@@ -391,7 +367,7 @@ function PostJobPage() {
       const draft = JSON.parse(saved);
       reset(draft);
       if (draft.slug) {
-        setValue("slug", draft.slug);
+        setValue('slug', draft.slug);
       }
     } catch {
       // ignore invalid saved draft
@@ -409,8 +385,8 @@ function PostJobPage() {
 
   React.useEffect(() => {
     const subscription = watch((value) => {
-      const title = value.jobTitle || "";
-      setValue("slug", slugify(title));
+      const title = value.jobTitle || '';
+      setValue('slug', slugify(title));
     });
     return () => subscription.unsubscribe();
   }, [watch, setValue]);
@@ -420,29 +396,29 @@ function PostJobPage() {
     [companies, values.companyId],
   );
 
-  const isNewCompany = values.companyId === "new";
-  const salaryValue = numberOnly(values.salary || "");
-  const salaryMinValue = numberOnly(values.salaryMin || "");
-  const salaryMaxValue = numberOnly(values.salaryMax || "");
-  const deadlineMin = new Date().toISOString().split("T")[0];
+  const isNewCompany = values.companyId === 'new';
+  const salaryValue = numberOnly(values.salary || '');
+  const salaryMinValue = numberOnly(values.salaryMin || '');
+  const salaryMaxValue = numberOnly(values.salaryMax || '');
+  const deadlineMin = new Date().toISOString().split('T')[0];
 
-  const stepLabels = ["Company", "Job details", "Applications", "Extras"];
+  const stepLabels = ['Company', 'Job details', 'Applications', 'Extras'];
 
   const goNext = async () => {
     const success = await trigger();
     if (!success) return;
     setStep((current) => Math.min(current + 1, 4));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const goBack = () => {
     setStep((current) => Math.max(current - 1, 1));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleLogoUpload = (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload a valid image file.");
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload a valid image file.');
       return;
     }
 
@@ -455,33 +431,29 @@ function PostJobPage() {
     };
     reader.onload = () => {
       const result = reader.result as string;
-      setValue("companyLogo", result);
+      setValue('companyLogo', result);
       setLogoProgress(100);
-      toast.success("Logo ready for your company profile.");
+      toast.success('Logo ready for your company profile.');
     };
     reader.readAsDataURL(file);
   };
 
   const renderPreview = (data: z.infer<typeof schema>) => {
     const salaryText =
-      data.salaryType === "undisclosed"
-        ? "Undisclosed"
-        : data.salaryType === "exact"
-          ? `${formatDisplayNumber(data.salary ?? "")} ${data.currency}`
-          : `${formatDisplayNumber(data.salaryMin ?? "")} - ${formatDisplayNumber(data.salaryMax ?? "")} ${data.currency}`;
+      data.salaryType === 'undisclosed'
+        ? 'Undisclosed'
+        : data.salaryType === 'exact'
+          ? `${formatDisplayNumber(data.salary ?? '')} ${data.currency}`
+          : `${formatDisplayNumber(data.salaryMin ?? '')} - ${formatDisplayNumber(data.salaryMax ?? '')} ${data.currency}`;
 
     return (
       <Card className="mt-4 rounded-3xl border border-border bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
           <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
-              Preview
-            </p>
-            <h3 className="mt-2 text-2xl font-semibold">
-              {data.jobTitle || "Job title preview"}
-            </h3>
+            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Preview</p>
+            <h3 className="mt-2 text-2xl font-semibold">{data.jobTitle || 'Job title preview'}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              {data.companyName || selectedCompany?.name || "Employer name"}
+              {data.companyName || selectedCompany?.name || 'Employer name'}
             </p>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-2 text-sm text-muted-foreground">
@@ -492,7 +464,7 @@ function PostJobPage() {
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <div className="rounded-3xl border border-border bg-background p-4 text-sm">
             <p className="text-muted-foreground">Location</p>
-            <p className="mt-2 font-medium">{data.location || "Tanzania"}</p>
+            <p className="mt-2 font-medium">{data.location || 'Tanzania'}</p>
           </div>
           <div className="rounded-3xl border border-border bg-background p-4 text-sm">
             <p className="text-muted-foreground">Salary</p>
@@ -500,7 +472,7 @@ function PostJobPage() {
           </div>
           <div className="rounded-3xl border border-border bg-background p-4 text-sm">
             <p className="text-muted-foreground">Deadline</p>
-            <p className="mt-2 font-medium">{data.deadline || "Flexible"}</p>
+            <p className="mt-2 font-medium">{data.deadline || 'Flexible'}</p>
           </div>
         </div>
 
@@ -508,22 +480,20 @@ function PostJobPage() {
           <div className="rounded-3xl border border-border bg-background p-4">
             <p className="text-sm font-semibold">Why this role matters</p>
             <p className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap">
-              {data.description ||
-                "Describe the impact and mission of this role."}
+              {data.description || 'Describe the impact and mission of this role.'}
             </p>
           </div>
           <div className="space-y-4">
             <div className="rounded-3xl border border-border bg-background p-4">
               <p className="text-sm font-semibold">Requirements</p>
               <p className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap">
-                {data.requirements || "List the key skills and qualifications."}
+                {data.requirements || 'List the key skills and qualifications.'}
               </p>
             </div>
             <div className="rounded-3xl border border-border bg-background p-4">
               <p className="text-sm font-semibold">Responsibilities</p>
               <p className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap">
-                {data.responsibilities ||
-                  "Explain the core responsibilities of the role."}
+                {data.responsibilities || 'Explain the core responsibilities of the role.'}
               </p>
             </div>
           </div>
@@ -539,19 +509,14 @@ function PostJobPage() {
           <Card className="rounded-4xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent">
-                  Section A
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold">
-                  Company information
-                </h2>
+                <p className="text-sm uppercase tracking-[0.2em] text-accent">Section A</p>
+                <h2 className="mt-2 text-2xl font-semibold">Company information</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Create or choose a polished employer profile for this opening.
                 </p>
               </div>
               <div className="hidden sm:flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <ShieldCheck className="h-4 w-4 text-accent" /> Employer
-                branding first
+                <ShieldCheck className="h-4 w-4 text-accent" /> Employer branding first
               </div>
             </div>
 
@@ -563,10 +528,7 @@ function PostJobPage() {
                   <FormItem className="mt-6">
                     <FormLabel>Employer profile</FormLabel>
                     <FormControl asChild>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select company or create new" />
                         </SelectTrigger>
@@ -576,15 +538,12 @@ function PostJobPage() {
                               {company.name}
                             </SelectItem>
                           ))}
-                          <SelectItem value="new">
-                            Create new company
-                          </SelectItem>
+                          <SelectItem value="new">Create new company</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
                     <FormDescription>
-                      Pick an existing company or create a fresh employer
-                      profile for this listing.
+                      Pick an existing company or create a fresh employer profile for this listing.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -627,7 +586,7 @@ function PostJobPage() {
                           const file = event.dataTransfer.files?.[0];
                           if (file) handleLogoUpload(file);
                         }}
-                        className={`group relative overflow-hidden rounded-3xl border-2 border-dashed ${dragging ? "border-accent bg-accent/10" : "border-border bg-background"} transition-all duration-200`}
+                        className={`group relative overflow-hidden rounded-3xl border-2 border-dashed ${dragging ? 'border-accent bg-accent/10' : 'border-border bg-background'} transition-all duration-200`}
                       >
                         <div className="min-h-50 p-6 text-center">
                           {values.companyLogo ? (
@@ -641,13 +600,8 @@ function PostJobPage() {
                               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-accent">
                                 <CloudUpload className="h-6 w-6" />
                               </div>
-                              <p className="font-medium text-foreground">
-                                Drag & drop or browse
-                              </p>
-                              <p>
-                                Upload a square logo for a polished company
-                                listing.
-                              </p>
+                              <p className="font-medium text-foreground">Drag & drop or browse</p>
+                              <p>Upload a square logo for a polished company listing.</p>
                             </div>
                           )}
                         </div>
@@ -682,10 +636,7 @@ function PostJobPage() {
                         <FormItem>
                           <FormLabel>Website or company link</FormLabel>
                           <FormControl asChild>
-                            <Input
-                              placeholder="https://talentra.co"
-                              {...field}
-                            />
+                            <Input placeholder="https://talentra.co" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -701,19 +652,13 @@ function PostJobPage() {
                         <FormItem>
                           <FormLabel>Industry</FormLabel>
                           <FormControl asChild>
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                            >
+                            <Select value={field.value} onValueChange={field.onChange}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Choose industry" />
                               </SelectTrigger>
                               <SelectContent>
                                 {INDUSTRIES.map((item) => (
-                                  <SelectItem
-                                    key={item.value}
-                                    value={item.value}
-                                  >
+                                  <SelectItem key={item.value} value={item.value}>
                                     {item.en}
                                   </SelectItem>
                                 ))}
@@ -759,11 +704,9 @@ function PostJobPage() {
                       )}
                     </div>
                     <div>
-                      <p className="text-base font-semibold">
-                        {selectedCompany.name}
-                      </p>
+                      <p className="text-base font-semibold">{selectedCompany.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {selectedCompany.website || "No website set"}
+                        {selectedCompany.website || 'No website set'}
                       </p>
                     </div>
                   </div>
@@ -773,9 +716,7 @@ function PostJobPage() {
                     ) : (
                       <ShieldCheck className="h-4 w-4 text-slate-500" />
                     )}
-                    {selectedCompany.verified
-                      ? "Verified employer"
-                      : "Profile not verified"}
+                    {selectedCompany.verified ? 'Verified employer' : 'Profile not verified'}
                   </div>
                 </div>
               </Card>
@@ -787,17 +728,14 @@ function PostJobPage() {
           <Card className="rounded-4xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent">
-                  Section B
-                </p>
+                <p className="text-sm uppercase tracking-[0.2em] text-accent">Section B</p>
                 <h2 className="mt-2 text-2xl font-semibold">Job details</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Describe the role clearly so candidates can decide fast.
                 </p>
               </div>
               <div className="hidden sm:flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <Briefcase className="h-4 w-4 text-accent" /> Modern role
-                presentation
+                <Briefcase className="h-4 w-4 text-accent" /> Modern role presentation
               </div>
             </div>
 
@@ -827,10 +765,7 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Job category</FormLabel>
                       <FormControl asChild>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
+                        <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
@@ -887,10 +822,7 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Work location</FormLabel>
                       <FormControl asChild>
-                        <Input
-                          placeholder="Dar es Salaam or remote"
-                          {...field}
-                        />
+                        <Input placeholder="Dar es Salaam or remote" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -904,10 +836,7 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Salary style</FormLabel>
                       <FormControl asChild>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
+                        <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
                             <SelectValue placeholder="Choose salary style" />
                           </SelectTrigger>
@@ -926,7 +855,7 @@ function PostJobPage() {
                 />
               </div>
 
-              {values.salaryType === "exact" ? (
+              {values.salaryType === 'exact' ? (
                 <FormField
                   control={control}
                   name="salary"
@@ -938,21 +867,19 @@ function PostJobPage() {
                           inputMode="numeric"
                           placeholder="1200000"
                           {...field}
-                          onChange={(event) =>
-                            field.onChange(numberOnly(event.target.value))
-                          }
+                          onChange={(event) => field.onChange(numberOnly(event.target.value))}
                         />
                       </FormControl>
                       <FormDescription>
-                        {formatDisplayNumber(field.value ?? "")
-                          ? `Formatted: ${formatDisplayNumber(field.value ?? "")} ${values.currency}`
-                          : "Enter the exact amount in numbers."}
+                        {formatDisplayNumber(field.value ?? '')
+                          ? `Formatted: ${formatDisplayNumber(field.value ?? '')} ${values.currency}`
+                          : 'Enter the exact amount in numbers.'}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              ) : values.salaryType === "range" ? (
+              ) : values.salaryType === 'range' ? (
                 <div className="grid gap-6 xl:grid-cols-2">
                   <FormField
                     control={control}
@@ -965,15 +892,13 @@ function PostJobPage() {
                             inputMode="numeric"
                             placeholder="500000"
                             {...field}
-                            onChange={(event) =>
-                              field.onChange(numberOnly(event.target.value))
-                            }
+                            onChange={(event) => field.onChange(numberOnly(event.target.value))}
                           />
                         </FormControl>
                         <FormDescription>
-                          {formatDisplayNumber(field.value ?? "")
-                            ? `Formatted: ${formatDisplayNumber(field.value ?? "")} ${values.currency}`
-                            : "Lower bound"}
+                          {formatDisplayNumber(field.value ?? '')
+                            ? `Formatted: ${formatDisplayNumber(field.value ?? '')} ${values.currency}`
+                            : 'Lower bound'}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -991,15 +916,13 @@ function PostJobPage() {
                             inputMode="numeric"
                             placeholder="1500000"
                             {...field}
-                            onChange={(event) =>
-                              field.onChange(numberOnly(event.target.value))
-                            }
+                            onChange={(event) => field.onChange(numberOnly(event.target.value))}
                           />
                         </FormControl>
                         <FormDescription>
-                          {formatDisplayNumber(field.value ?? "")
-                            ? `Formatted: ${formatDisplayNumber(field.value ?? "")} ${values.currency}`
-                            : "Upper bound"}
+                          {formatDisplayNumber(field.value ?? '')
+                            ? `Formatted: ${formatDisplayNumber(field.value ?? '')} ${values.currency}`
+                            : 'Upper bound'}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -1016,10 +939,7 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Currency</FormLabel>
                       <FormControl asChild>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
+                        <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
                             <SelectValue placeholder="Currency" />
                           </SelectTrigger>
@@ -1060,19 +980,13 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Experience level</FormLabel>
                       <FormControl asChild>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
+                        <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select level" />
                           </SelectTrigger>
                           <SelectContent>
                             {EXPERIENCE_LEVELS.map((option) => (
-                              <SelectItem
-                                key={option.value}
-                                value={option.value}
-                              >
+                              <SelectItem key={option.value} value={option.value}>
                                 {option.label}
                               </SelectItem>
                             ))}
@@ -1091,19 +1005,13 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Education level</FormLabel>
                       <FormControl asChild>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
+                        <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select education" />
                           </SelectTrigger>
                           <SelectContent>
                             {EDUCATION_LEVELS.map((option) => (
-                              <SelectItem
-                                key={option.value}
-                                value={option.value}
-                              >
+                              <SelectItem key={option.value} value={option.value}>
                                 {option.label}
                               </SelectItem>
                             ))}
@@ -1189,19 +1097,14 @@ function PostJobPage() {
           <Card className="rounded-4xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent">
-                  Section C
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold">
-                  Application method
-                </h2>
+                <p className="text-sm uppercase tracking-[0.2em] text-accent">Section C</p>
+                <h2 className="mt-2 text-2xl font-semibold">Application method</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Choose how candidates send applications for this role.
                 </p>
               </div>
               <div className="hidden sm:flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4 text-accent" /> Flexible application
-                flow
+                <Mail className="h-4 w-4 text-accent" /> Flexible application flow
               </div>
             </div>
 
@@ -1221,7 +1124,7 @@ function PostJobPage() {
                         {APPLY_METHODS.map((option) => (
                           <label
                             key={option.value}
-                            className={`group flex items-center justify-between gap-3 rounded-3xl border p-4 text-sm transition ${field.value === option.value ? "border-accent bg-accent/5" : "border-border bg-background hover:border-accent"}`}
+                            className={`group flex items-center justify-between gap-3 rounded-3xl border p-4 text-sm transition ${field.value === option.value ? 'border-accent bg-accent/5' : 'border-border bg-background hover:border-accent'}`}
                           >
                             <span>{option.label}</span>
                             <RadioGroupItem value={option.value} />
@@ -1234,7 +1137,7 @@ function PostJobPage() {
                 )}
               />
 
-              {values.applyMethod === "email" ? (
+              {values.applyMethod === 'email' ? (
                 <FormField
                   control={control}
                   name="applyEmail"
@@ -1248,7 +1151,7 @@ function PostJobPage() {
                     </FormItem>
                   )}
                 />
-              ) : values.applyMethod === "url" ? (
+              ) : values.applyMethod === 'url' ? (
                 <FormField
                   control={control}
                   name="applyUrl"
@@ -1256,10 +1159,7 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>External application link</FormLabel>
                       <FormControl asChild>
-                        <Input
-                          placeholder="https://talentra.co/careers/123"
-                          {...field}
-                        />
+                        <Input placeholder="https://talentra.co/careers/123" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1269,8 +1169,8 @@ function PostJobPage() {
                 <FormItem>
                   <FormLabel>Internal platform</FormLabel>
                   <p className="text-sm text-muted-foreground">
-                    Candidates will apply through Talentra and you can review
-                    submissions in the employer dashboard.
+                    Candidates will apply through Talentra and you can review submissions in the
+                    employer dashboard.
                   </p>
                 </FormItem>
               )}
@@ -1282,19 +1182,14 @@ function PostJobPage() {
           <Card className="rounded-4xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent">
-                  Section D
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold">
-                  Additional options
-                </h2>
+                <p className="text-sm uppercase tracking-[0.2em] text-accent">Section D</p>
+                <h2 className="mt-2 text-2xl font-semibold">Additional options</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Boost visibility with optional premium tags.
                 </p>
               </div>
               <div className="hidden sm:flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <Sparkles className="h-4 w-4 text-accent" /> Better candidate
-                reach
+                <Sparkles className="h-4 w-4 text-accent" /> Better candidate reach
               </div>
             </div>
 
@@ -1305,17 +1200,10 @@ function PostJobPage() {
                 render={({ field }) => (
                   <FormItem className="rounded-3xl border border-border p-4 transition hover:border-accent">
                     <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       <div>
-                        <FormLabel className="text-base">
-                          Featured job
-                        </FormLabel>
-                        <FormDescription>
-                          Highlight this role in the Talentra feed.
-                        </FormDescription>
+                        <FormLabel className="text-base">Featured job</FormLabel>
+                        <FormDescription>Highlight this role in the Talentra feed.</FormDescription>
                       </div>
                     </div>
                   </FormItem>
@@ -1328,15 +1216,10 @@ function PostJobPage() {
                 render={({ field }) => (
                   <FormItem className="rounded-3xl border border-border p-4 transition hover:border-accent">
                     <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       <div>
                         <FormLabel className="text-base">Urgent hire</FormLabel>
-                        <FormDescription>
-                          Mark this role as a priority opening.
-                        </FormDescription>
+                        <FormDescription>Mark this role as a priority opening.</FormDescription>
                       </div>
                     </div>
                   </FormItem>
@@ -1349,17 +1232,10 @@ function PostJobPage() {
                 render={({ field }) => (
                   <FormItem className="rounded-3xl border border-border p-4 transition hover:border-accent">
                     <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       <div>
-                        <FormLabel className="text-base">
-                          Remote friendly
-                        </FormLabel>
-                        <FormDescription>
-                          Appeal to remote-first candidates.
-                        </FormDescription>
+                        <FormLabel className="text-base">Remote friendly</FormLabel>
+                        <FormDescription>Appeal to remote-first candidates.</FormDescription>
                       </div>
                     </div>
                   </FormItem>
@@ -1380,15 +1256,14 @@ function PostJobPage() {
                   variant="outline"
                   onClick={() => setPreviewOpen((open) => !open)}
                 >
-                  {previewOpen ? "Hide preview" : "Show preview"}
+                  {previewOpen ? 'Hide preview' : 'Show preview'}
                 </Button>
               </div>
               {previewOpen ? (
                 renderPreview(values)
               ) : (
                 <p className="mt-4 text-sm text-muted-foreground">
-                  Tap the button to preview how your listing will appear to
-                  candidates.
+                  Tap the button to preview how your listing will appear to candidates.
                 </p>
               )}
             </div>
@@ -1401,25 +1276,24 @@ function PostJobPage() {
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     if (!user) return;
-    if (data.companyId !== "new" && selectedCompany?.suspended) {
-      toast.error("This employer profile has been suspended.");
+    if (data.companyId !== 'new' && selectedCompany?.suspended) {
+      toast.error('This employer profile has been suspended.');
       return;
     }
 
-    let selectedCompanyId =
-      data.companyId === "new" ? undefined : data.companyId;
-    if (data.companyId === "new") {
+    let selectedCompanyId = data.companyId === 'new' ? undefined : data.companyId;
+    if (data.companyId === 'new') {
       const { data: companyData, error: companyError } = await supabase
-        .from("companies")
+        .from('companies')
         .insert({
           owner_id: user.id,
-          name: data.companyName?.trim() ?? "",
+          name: data.companyName?.trim() ?? '',
           logo_url: data.companyLogo || null,
           website: data.companyWebsite?.trim() || null,
           industry: data.industry || null,
           location: data.companyLocation || null,
         })
-        .select("id")
+        .select('id')
         .single();
 
       if (companyError) {
@@ -1427,57 +1301,48 @@ function PostJobPage() {
         return;
       }
       selectedCompanyId = companyData.id;
-      if (!roles.includes("employer")) {
-        await supabase
-          .from("user_roles")
-          .insert({ user_id: user.id, role: "employer" });
+      if (!roles.includes('employer')) {
+        await supabase.from('user_roles').insert({ user_id: user.id, role: 'employer' });
       }
     }
 
     if (!selectedCompanyId) {
-      toast.error("Choose or create an employer profile before publishing.");
+      toast.error('Choose or create an employer profile before publishing.');
       return;
     }
 
     const salaryMin =
-      data.salaryType === "exact"
-        ? Number(salaryValue || 0)
-        : Number(salaryMinValue || 0);
+      data.salaryType === 'exact' ? Number(salaryValue || 0) : Number(salaryMinValue || 0);
     const salaryMax =
-      data.salaryType === "exact"
-        ? Number(salaryValue || 0)
-        : Number(salaryMaxValue || 0);
+      data.salaryType === 'exact' ? Number(salaryValue || 0) : Number(salaryMaxValue || 0);
     const details = [
       data.description.trim(),
-      "\n\nRequirements:\n" + data.requirements.trim(),
-      "\n\nResponsibilities:\n" + data.responsibilities.trim(),
-    ].join("");
+      '\n\nRequirements:\n' + data.requirements.trim(),
+      '\n\nResponsibilities:\n' + data.responsibilities.trim(),
+    ].join('');
 
     const jobPayload = {
       companyName:
-        data.companyId === "new"
-          ? (data.companyName?.trim() ?? "")
-          : (selectedCompany?.name ?? ""),
-      companyLogo: data.companyLogo || selectedCompany?.logo_url || "",
-      companyWebsite:
-        data.companyWebsite?.trim() || selectedCompany?.website || "",
-      industry: data.industry || selectedCompany?.industry || "",
+        data.companyId === 'new' ? (data.companyName?.trim() ?? '') : (selectedCompany?.name ?? ''),
+      companyLogo: data.companyLogo || selectedCompany?.logo_url || '',
+      companyWebsite: data.companyWebsite?.trim() || selectedCompany?.website || '',
+      industry: data.industry || selectedCompany?.industry || '',
       jobTitle: data.jobTitle.trim(),
       category: data.category,
       jobType: data.jobType,
       location: data.location.trim(),
       salaryType: data.salaryType,
-      salary: data.salaryType === "exact" ? Number(salaryValue || 0) : null,
+      salary: data.salaryType === 'exact' ? Number(salaryValue || 0) : null,
       salaryMin:
-        data.salaryType === "range"
+        data.salaryType === 'range'
           ? Number(salaryMinValue || 0)
-          : data.salaryType === "exact"
+          : data.salaryType === 'exact'
             ? Number(salaryValue || 0)
             : null,
       salaryMax:
-        data.salaryType === "range"
+        data.salaryType === 'range'
           ? Number(salaryMaxValue || 0)
-          : data.salaryType === "exact"
+          : data.salaryType === 'exact'
             ? Number(salaryValue || 0)
             : null,
       currency: data.currency,
@@ -1488,26 +1353,26 @@ function PostJobPage() {
       educationLevel: data.educationLevel,
       deadline: data.deadline || null,
       applyMethod: data.applyMethod,
-      applyEmail: data.applyEmail?.trim() || "",
-      applyUrl: data.applyUrl?.trim() || "",
+      applyEmail: data.applyEmail?.trim() || '',
+      applyUrl: data.applyUrl?.trim() || '',
       featured: data.featured,
       urgent: data.urgent,
       remoteFriendly: data.remoteFriendly,
-      status: "published",
+      status: 'published',
       createdAt: new Date().toISOString(),
     };
 
     const { data: jobResult, error: jobError } = await supabase
-      .from("jobs")
+      .from('jobs')
       .insert({
         company_id: selectedCompanyId,
         posted_by: user.id,
-        created_by_role: roles.includes("admin") ? "admin" : "employer",
+        created_by_role: roles.includes('admin') ? 'admin' : 'employer',
         title: data.jobTitle.trim(),
         description: details,
         location: data.location.trim(),
         region: null,
-        industry: data.industry || "",
+        industry: data.industry || '',
         position_level: data.experienceLevel as never,
         contract_type: JOB_TYPE_TO_CONTRACT[
           data.jobType as keyof typeof JOB_TYPE_TO_CONTRACT
@@ -1518,30 +1383,28 @@ function PostJobPage() {
         currency: data.currency,
         salary_negotiable: false,
         deadline: data.deadline || null,
-        status: "published",
+        status: 'published',
         featured: data.featured,
       })
-      .select("id")
+      .select('id')
       .single();
 
     if (jobError || !jobResult?.id) {
-      toast.error(jobError?.message ?? "Unable to publish job.");
+      toast.error(jobError?.message ?? 'Unable to publish job.');
       return;
     }
 
     localStorage.removeItem(DRAFT_KEY);
-    queryClient.invalidateQueries({ queryKey: ["my-companies"] });
-    toast.success("Job published. Talent will discover your opening soon.");
-    navigate({ to: "/jobs/$id", params: { id: jobResult.id } });
+    queryClient.invalidateQueries({ queryKey: ['my-companies'] });
+    toast.success('Job published. Talent will discover your opening soon.');
+    navigate({ to: '/jobs/$id', params: { id: jobResult.id } });
   };
 
   const hasPremium = companies?.some((company) => company?.premium) ?? false;
   const totalPublished =
     companies?.reduce(
       (sum, company) =>
-        sum +
-        (company?.jobs?.filter((job) => job.status === "published").length ??
-          0),
+        sum + (company?.jobs?.filter((job) => job.status === 'published').length ?? 0),
       0,
     ) ?? 0;
   const limitReached = !hasPremium && totalPublished >= 10;
@@ -1563,8 +1426,8 @@ function PostJobPage() {
                   Post a premium job listing
                 </h1>
                 <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-                  A smoother employer workflow optimized for mobile candidates
-                  across Tanzania and Africa.
+                  A smoother employer workflow optimized for mobile candidates across Tanzania and
+                  Africa.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -1572,55 +1435,40 @@ function PostJobPage() {
                   <Link to="/dashboard">Employer dashboard</Link>
                 </Button>
                 <span className="rounded-full bg-slate-100 px-3 py-2 text-xs uppercase tracking-[0.2em] text-slate-600">
-                  Draft{" "}
-                  {draftSavedAt ? `saved at ${draftSavedAt}` : "available"}
+                  Draft {draftSavedAt ? `saved at ${draftSavedAt}` : 'available'}
                 </span>
               </div>
             </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-4">
               {stepLabels.map((label, index) => (
-                <div
-                  key={label}
-                  className="rounded-2xl bg-slate-100 p-3 text-center"
-                >
+                <div key={label} className="rounded-2xl bg-slate-100 p-3 text-center">
                   <div
-                    className={`mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${step === index + 1 ? "bg-accent text-white" : "bg-white text-slate-500"}`}
+                    className={`mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${step === index + 1 ? 'bg-accent text-white' : 'bg-white text-slate-500'}`}
                   >
                     {index + 1}
                   </div>
-                  <p className="text-xs uppercase tracking-[0.25em] text-slate-500">
-                    {label}
-                  </p>
+                  <p className="text-xs uppercase tracking-[0.25em] text-slate-500">{label}</p>
                 </div>
               ))}
             </div>
           </section>
 
           <Form {...form}>
-            <form
-              id="job-post-form"
-              onSubmit={handleSubmit(onSubmit)}
-              className="space-y-8"
-            >
+            <form id="job-post-form" onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {renderStep()}
 
               <div className="flex flex-col gap-3 rounded-3xl border border-border bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex flex-col gap-2 text-sm text-muted-foreground">
                   <span>
                     {step < 4
-                      ? "Step by step guidance to publish your role."
-                      : "Finalize your listing with a preview and publish."}
+                      ? 'Step by step guidance to publish your role.'
+                      : 'Finalize your listing with a preview and publish.'}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {step > 1 ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={goBack}
-                      className="min-w-35"
-                    >
+                    <Button type="button" variant="outline" onClick={goBack} className="min-w-35">
                       <ArrowLeft className="h-4 w-4" /> Back
                     </Button>
                   ) : null}
@@ -1638,7 +1486,7 @@ function PostJobPage() {
                       className="min-w-35 bg-accent text-accent-foreground hover:bg-accent/90"
                       disabled={formState.isSubmitting}
                     >
-                      {formState.isSubmitting ? "Publishing…" : "Publish job"}
+                      {formState.isSubmitting ? 'Publishing…' : 'Publish job'}
                     </Button>
                   )}
                 </div>
@@ -1674,7 +1522,7 @@ function PostJobPage() {
               className="flex-1 bg-accent text-accent-foreground"
               disabled={formState.isSubmitting}
             >
-              {formState.isSubmitting ? "Publishing…" : "Publish"}
+              {formState.isSubmitting ? 'Publishing…' : 'Publish'}
             </Button>
           )}
         </div>

@@ -1,8 +1,8 @@
-import { Link } from "@tanstack/react-router";
-import { Bookmark, MapPin, Clock, Briefcase, BadgeCheck } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { formatSalary, industryLabel, timeAgo } from "@/lib/kazi-data";
+import { Link } from '@tanstack/react-router';
+import { Bookmark, MapPin, Clock, Briefcase, BadgeCheck } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { formatSalary, industryLabel, timeAgo } from '@/lib/kazi-data';
 
 export type JobCardData = {
   id: string;
@@ -40,7 +40,7 @@ export function JobCard({ job }: { job: JobCardData }) {
               />
             ) : (
               <div className="h-12 w-12 rounded-lg bg-cream grid place-items-center font-display font-bold text-primary border border-border">
-                {co?.name?.[0]?.toUpperCase() ?? "K"}
+                {co?.name?.[0]?.toUpperCase() ?? 'K'}
               </div>
             )}
           </div>
@@ -52,7 +52,7 @@ export function JobCard({ job }: { job: JobCardData }) {
                   {job.title}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-0.5 truncate">
-                  {co?.name ?? "Company"}
+                  {co?.name ?? 'Company'}
                   {co?.verified ? (
                     <BadgeCheck className="inline h-3.5 w-3.5 ml-1 text-accent" />
                   ) : null}
@@ -92,9 +92,7 @@ export function JobCard({ job }: { job: JobCardData }) {
                 {industryLabel(job.industry)}
               </Badge>
               {job.featured ? (
-                <Badge className="bg-accent text-accent-foreground">
-                  Featured
-                </Badge>
+                <Badge className="bg-accent text-accent-foreground">Featured</Badge>
               ) : null}
             </div>
 
@@ -103,7 +101,7 @@ export function JobCard({ job }: { job: JobCardData }) {
                 {formatSalary(
                   job.salary_min,
                   job.salary_max,
-                  job.currency ?? "TZS",
+                  job.currency ?? 'TZS',
                   job.salary_negotiable ?? false,
                 )}
               </span>

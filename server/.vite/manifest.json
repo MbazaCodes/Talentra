@@ -11,11 +11,7 @@
   "_badge-BgXVePyZ.js": {
     "file": "assets/badge-BgXVePyZ.js",
     "name": "badge",
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_site-chrome-Bvu9S7aA.js",
-      "_router-CHXEIgg2.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_site-chrome-Bvu9S7aA.js", "_router-CHXEIgg2.js"]
   },
   "_card-Ej90xD4L.js": {
     "file": "assets/card-Ej90xD4L.js",
@@ -30,11 +26,7 @@
   "_firebase-data-BUO9wKcd.js": {
     "file": "assets/firebase-data-BUO9wKcd.js",
     "name": "firebase-data",
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_router-CHXEIgg2.js",
-      "_site-chrome-Bvu9S7aA.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_router-CHXEIgg2.js", "_site-chrome-Bvu9S7aA.js"]
   },
   "_globe-QP9j5P55.js": {
     "file": "assets/globe-QP9j5P55.js",
@@ -71,11 +63,7 @@
   "_label-BkE_bE0M.js": {
     "file": "assets/label-BkE_bE0M.js",
     "name": "label",
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_router-CHXEIgg2.js",
-      "_site-chrome-Bvu9S7aA.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_router-CHXEIgg2.js", "_site-chrome-Bvu9S7aA.js"]
   },
   "_map-pin-CkjyBNpx.js": {
     "file": "assets/map-pin-CkjyBNpx.js",
@@ -386,11 +374,7 @@
     "name": "about",
     "src": "src/routes/about.tsx?tsr-split=component",
     "isDynamicEntry": true,
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_router-CHXEIgg2.js",
-      "_site-chrome-Bvu9S7aA.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_router-CHXEIgg2.js", "_site-chrome-Bvu9S7aA.js"]
   },
   "src/routes/admin.tsx?tsr-split=component": {
     "file": "assets/admin-CA8TpMf4.js",
@@ -481,11 +465,7 @@
     "name": "employers",
     "src": "src/routes/employers.tsx?tsr-split=component",
     "isDynamicEntry": true,
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_router-CHXEIgg2.js",
-      "_site-chrome-Bvu9S7aA.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_router-CHXEIgg2.js", "_site-chrome-Bvu9S7aA.js"]
   },
   "src/routes/index.tsx?tsr-split=component": {
     "file": "assets/index-B45ewGGM.js",
@@ -514,11 +494,7 @@
     "name": "job-seekers",
     "src": "src/routes/job-seekers.tsx?tsr-split=component",
     "isDynamicEntry": true,
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_router-CHXEIgg2.js",
-      "_site-chrome-Bvu9S7aA.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_router-CHXEIgg2.js", "_site-chrome-Bvu9S7aA.js"]
   },
   "src/routes/jobs.$id.tsx?tsr-split=component": {
     "file": "assets/jobs._id-BC21iKxi.js",

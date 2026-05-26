@@ -1,65 +1,36 @@
-import * as React from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import { useEffect, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from '@supabase/supabase-js';
 
-type Role = "job_seeker" | "employer" | "admin";
-
-type Ctx = {
+export interface AuthState {
   user: User | null;
-  session: null;
-  roles: Role[];
   loading: boolean;
-  signOut: () => Promise<void>;
-  refreshRoles: () => Promise<void>;
-};
+  roles: string[];
+}
 
-const AuthContext = React.createContext<Ctx>({
-  user: null,
-  session: null,
-  roles: [],
-  loading: true,
-  signOut: async () => {},
-  refreshRoles: async () => {},
-});
+export function useAuth(): AuthState {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [roles, setRoles] = useState<string[]>([]);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = React.useState<User | null>(null);
-  const [roles, setRoles] = React.useState<Role[]>([]);
-  const [loading, setLoading] = React.useState(true);
-
-  const loadRoles = React.useCallback(async (userId: string | undefined) => {
-    if (!userId) return setRoles([]);
-
-    const { data: rolesData, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-
-    if (error) {
-      console.error("Error loading roles:", error);
-      return setRoles([]);
-    }
-
-    setRoles(rolesData?.map((r) => r.role as Role) || []);
-  }, []);
-
-  React.useEffect(() => {
-    setLoading(true);
-
+  useEffect(() => {
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadRoles(session.user.id);
+        fetchUserRoles(session.user.id);
       }
       setLoading(false);
     });
 
+    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        await loadRoles(session.user.id);
+        fetchUserRoles(session.user.id);
       } else {
         setRoles([]);
       }
@@ -67,24 +38,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [loadRoles]);
-
-  const signOut = React.useCallback(async () => {
-    await supabase.auth.signOut();
   }, []);
 
-  const refreshRoles = React.useCallback(async () => {
-    await loadRoles(user?.id);
-  }, [user?.id, loadRoles]);
+  const fetchUserRoles = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
 
-  const value = React.useMemo(
-    () => ({ user, session: null, roles, loading, signOut, refreshRoles }),
-    [user, roles, loading, signOut, refreshRoles],
-  );
+      if (error) throw error;
+      setRoles(data?.map((r) => r.role) ?? []);
+    } catch (error) {
+      console.error('Error fetching user roles:', error);
+      setRoles([]);
+    }
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return { user, loading, roles };
 }
 
-export function useAuth() {
-  return React.useContext(AuthContext);
+export function useRequireAuth() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate({ to: '/auth' });
+    }
+  }, [user, loading, navigate]);
+
+  return { user, loading };
 }

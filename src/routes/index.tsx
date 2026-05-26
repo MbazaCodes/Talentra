@@ -1,60 +1,44 @@
-import * as React from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import {
-  Search,
-  MapPin,
-  ArrowRight,
-  BadgeCheck,
-  Briefcase,
-  Users,
-  Sparkles,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import * as React from 'react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
+import { Search, MapPin, ArrowRight, BadgeCheck, Briefcase, Users, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import {
-  SiteHeader,
-  SiteFooter,
-  MobileBottomNav,
-} from "@/components/site-chrome";
-import {
-  JobCard,
-  JobCardSkeleton,
-  type JobCardData,
-} from "@/components/job-card";
-import { supabase } from "@/integrations/supabase/client";
-import { REGIONS, INDUSTRIES } from "@/lib/kazi-data";
-import { useT, useLang } from "@/lib/i18n";
-import heroImg from "@/assets/hero-kazi.jpg";
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { SiteHeader, SiteFooter, MobileBottomNav } from '@/components/site-chrome';
+import { JobCard, JobCardSkeleton, type JobCardData } from '@/components/job-card';
+import { supabase } from '@/integrations/supabase/client';
+import { REGIONS, INDUSTRIES } from '@/lib/kazi-data';
+import { useT, useLang } from '@/lib/i18n';
+import heroImg from '@/assets/hero-kazi.jpg';
 
-export const Route = createFileRoute("/")({ component: LandingPage });
+export const Route = createFileRoute('/')({ component: LandingPage });
 
 function LandingPage() {
   const t = useT();
   const { lang } = useLang();
   const navigate = useNavigate();
-  const [q, setQ] = React.useState("");
-  const [region, setRegion] = React.useState<string>("");
+  const [q, setQ] = React.useState('');
+  const [region, setRegion] = React.useState<string>('');
 
   const { data: featured, isLoading } = useQuery({
-    queryKey: ["featured-jobs"],
+    queryKey: ['featured-jobs'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("jobs")
+        .from('jobs')
         .select(
-          "id,title,location,region,industry,contract_type,salary_min,salary_max,salary_negotiable,currency,created_at,deadline,featured,companies(name,logo_url,verified)",
+          'id,title,location,region,industry,contract_type,salary_min,salary_max,salary_negotiable,currency,created_at,deadline,featured,companies(name,logo_url,verified)',
         )
-        .eq("status", "published")
-        .order("featured", { ascending: false })
-        .order("created_at", { ascending: false })
+        .eq('status', 'published')
+        .order('featured', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(6);
       if (error) throw error;
       return (data ?? []) as unknown as JobCardData[];
@@ -64,7 +48,7 @@ function LandingPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     navigate({
-      to: "/jobs",
+      to: '/jobs',
       search: { q: q || undefined, region: region || undefined } as never,
     });
   };
@@ -77,22 +61,17 @@ function LandingPage() {
       <section className="relative overflow-hidden">
         <div className="container mx-auto px-4 py-12 md:py-20 grid md:grid-cols-2 gap-10 items-center">
           <div className="space-y-6">
-            <Badge
-              variant="secondary"
-              className="bg-cream border border-border text-foreground/80"
-            >
-              <Sparkles className="h-3 w-3 mr-1 text-accent" /> {t("tagline")}
+            <Badge variant="secondary" className="bg-cream border border-border text-foreground/80">
+              <Sparkles className="h-3 w-3 mr-1 text-accent" /> {t('tagline')}
             </Badge>
             <h1 className="font-display text-4xl md:text-6xl font-bold leading-[1.05]">
-              {t("hero_title_1")}{" "}
+              {t('hero_title_1')}{' '}
               <span className="relative whitespace-nowrap">
-                <span className="text-accent">{t("hero_title_2")}</span>
+                <span className="text-accent">{t('hero_title_2')}</span>
                 <span className="absolute -bottom-1 left-0 right-0 h-2 bg-peach/50 -z-10 rounded" />
               </span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl">
-              {t("hero_sub")}
-            </p>
+            <p className="text-lg text-muted-foreground max-w-xl">{t('hero_sub')}</p>
 
             <form
               onSubmit={handleSearch}
@@ -103,7 +82,7 @@ function LandingPage() {
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder={t("search_title")}
+                  placeholder={t('search_title')}
                   className="border-0 shadow-none focus-visible:ring-0 px-0"
                 />
               </div>
@@ -111,7 +90,7 @@ function LandingPage() {
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <Select value={region} onValueChange={setRegion}>
                   <SelectTrigger className="border-0 shadow-none focus:ring-0 px-0 h-auto">
-                    <SelectValue placeholder={t("search_location")} />
+                    <SelectValue placeholder={t('search_location')} />
                   </SelectTrigger>
                   <SelectContent>
                     {REGIONS.map((r) => (
@@ -127,24 +106,22 @@ function LandingPage() {
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
-                {t("search_btn")}
+                {t('search_btn')}
               </Button>
             </form>
 
             <div className="flex flex-wrap gap-2 text-sm">
               <span className="text-muted-foreground">Popular:</span>
-              {["Dar es Salaam", "ICT", "NGO", "Banking", "Remote"].map(
-                (tag) => (
-                  <Link
-                    key={tag}
-                    to="/jobs"
-                    search={{ q: tag } as never}
-                    className="text-foreground/80 hover:text-accent underline-offset-4 hover:underline"
-                  >
-                    {tag}
-                  </Link>
-                ),
-              )}
+              {['Dar es Salaam', 'ICT', 'NGO', 'Banking', 'Remote'].map((tag) => (
+                <Link
+                  key={tag}
+                  to="/jobs"
+                  search={{ q: tag } as never}
+                  className="text-foreground/80 hover:text-accent underline-offset-4 hover:underline"
+                >
+                  {tag}
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -172,9 +149,7 @@ function LandingPage() {
               </div>
               <div className="text-sm">
                 <div className="font-display font-semibold">800+</div>
-                <div className="text-xs text-muted-foreground">
-                  Verified employers
-                </div>
+                <div className="text-xs text-muted-foreground">Verified employers</div>
               </div>
             </div>
           </div>
@@ -184,9 +159,7 @@ function LandingPage() {
       {/* Industries */}
       <section className="container mx-auto px-4 py-12">
         <div className="flex items-end justify-between mb-6">
-          <h2 className="font-display text-2xl md:text-3xl font-semibold">
-            Browse by industry
-          </h2>
+          <h2 className="font-display text-2xl md:text-3xl font-semibold">Browse by industry</h2>
           <Link
             to="/jobs"
             className="text-sm text-accent hover:underline inline-flex items-center gap-1"
@@ -203,10 +176,10 @@ function LandingPage() {
               className="group rounded-xl border border-border bg-card p-4 hover:border-accent/40 hover:shadow-sm transition"
             >
               <div className="font-display font-semibold text-foreground group-hover:text-accent transition">
-                {lang === "sw" ? i.sw : i.en}
+                {lang === 'sw' ? i.sw : i.en}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                {lang === "sw" ? i.en : i.sw}
+                {lang === 'sw' ? i.en : i.sw}
               </div>
             </Link>
           ))}
@@ -253,8 +226,7 @@ function LandingPage() {
               Hire the right talent across Tanzania, faster.
             </h3>
             <p className="mt-3 text-primary-foreground/80">
-              Post your first job free. Reach verified candidates in every
-              region.
+              Post your first job free. Reach verified candidates in every region.
             </p>
           </div>
           <div className="flex md:justify-end">

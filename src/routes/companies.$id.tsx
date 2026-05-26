@@ -1,46 +1,38 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { MapPin, Globe, BadgeCheck } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  SiteHeader,
-  SiteFooter,
-  MobileBottomNav,
-} from "@/components/site-chrome";
-import { JobCard, type JobCardData } from "@/components/job-card";
-import { supabase } from "@/integrations/supabase/client";
-import { industryLabel } from "@/lib/kazi-data";
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
+import { MapPin, Globe, BadgeCheck } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { SiteHeader, SiteFooter, MobileBottomNav } from '@/components/site-chrome';
+import { JobCard, type JobCardData } from '@/components/job-card';
+import { supabase } from '@/integrations/supabase/client';
+import { industryLabel } from '@/lib/kazi-data';
 
-export const Route = createFileRoute("/companies/$id")({
+export const Route = createFileRoute('/companies/$id')({
   component: CompanyPage,
 });
 
 function CompanyPage() {
   const { id } = Route.useParams();
   const { data: co } = useQuery({
-    queryKey: ["company", id],
+    queryKey: ['company', id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
+      const { data } = await supabase.from('companies').select('*').eq('id', id).maybeSingle();
       return data;
     },
   });
   const { data: jobs } = useQuery({
-    queryKey: ["company-jobs", id],
+    queryKey: ['company-jobs', id],
     queryFn: async () => {
       const { data } = await supabase
-        .from("jobs")
+        .from('jobs')
         .select(
-          "id,title,location,region,industry,contract_type,salary_min,salary_max,salary_negotiable,currency,created_at,deadline,featured,companies(name,logo_url,verified)",
+          'id,title,location,region,industry,contract_type,salary_min,salary_max,salary_negotiable,currency,created_at,deadline,featured,companies(name,logo_url,verified)',
         )
-        .eq("company_id", id)
-        .eq("status", "published")
-        .order("created_at", { ascending: false });
+        .eq('company_id', id)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
       return (data ?? []) as unknown as JobCardData[];
     },
   });
@@ -78,10 +70,8 @@ function CompanyPage() {
             )}
             <div>
               <h1 className="font-display text-3xl font-semibold">
-                {co.name}{" "}
-                {co.verified ? (
-                  <BadgeCheck className="inline h-5 w-5 text-accent" />
-                ) : null}
+                {co.name}{' '}
+                {co.verified ? <BadgeCheck className="inline h-5 w-5 text-accent" /> : null}
               </h1>
               <div className="mt-2 flex flex-wrap gap-2 text-sm text-primary-foreground/80">
                 {co.industry ? (
@@ -115,9 +105,7 @@ function CompanyPage() {
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {co.description ? (
           <Card className="p-6">
-            <p className="text-foreground/80 whitespace-pre-wrap">
-              {co.description}
-            </p>
+            <p className="text-foreground/80 whitespace-pre-wrap">{co.description}</p>
           </Card>
         ) : null}
 
@@ -128,9 +116,7 @@ function CompanyPage() {
           {jobs?.length ? (
             jobs.map((j) => <JobCard key={j.id} job={j} />)
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No open roles right now.
-            </p>
+            <p className="text-sm text-muted-foreground">No open roles right now.</p>
           )}
         </div>
       </div>

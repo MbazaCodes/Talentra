@@ -1,6 +1,6 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
-export type Role = "job_seeker" | "employer" | "admin";
+export type Role = 'job_seeker' | 'employer' | 'admin';
 
 export interface SeekerProfile {
   id: string;
@@ -41,20 +41,13 @@ export interface SavedJobRecord {
 }
 
 export async function getUserProfile(uid: string) {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", uid)
-    .single();
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', uid).single();
 
   if (error || !data) return null;
   return data as SeekerProfile;
 }
 
-export async function saveUserProfile(
-  uid: string,
-  profile: Partial<SeekerProfile>,
-) {
+export async function saveUserProfile(uid: string, profile: Partial<SeekerProfile>) {
   const updateData: unknown = {
     updated_at: new Date().toISOString(),
   };
@@ -65,29 +58,24 @@ export async function saveUserProfile(
   if (profile.location !== undefined) updateData.location = profile.location;
   if (profile.phone !== undefined) updateData.phone = profile.phone;
 
-  const { error } = await supabase
-    .from("profiles")
-    .update(updateData)
-    .eq("id", uid);
+  const { error } = await supabase.from('profiles').update(updateData).eq('id', uid);
 
   if (error) throw error;
 }
 
 export async function uploadResumeFile(uid: string, file: File) {
-  const fileExt = file.name.split(".").pop();
+  const fileExt = file.name.split('.').pop();
   const timestamp = Date.now();
   const fileName = `${uid}/${timestamp}.${fileExt}`;
   const filePath = `resumes/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from("resumes")
-    .upload(filePath, file);
+  const { error: uploadError } = await supabase.storage.from('resumes').upload(filePath, file);
 
   if (uploadError) throw uploadError;
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from("resumes").getPublicUrl(filePath);
+  } = supabase.storage.from('resumes').getPublicUrl(filePath);
 
   await saveUserProfile(uid, { resumeUrl: publicUrl });
   return publicUrl;
@@ -95,7 +83,7 @@ export async function uploadResumeFile(uid: string, file: File) {
 
 export async function fetchUserApplications(uid: string) {
   const { data, error } = await supabase
-    .from("applications")
+    .from('applications')
     .select(
       `
       id,
@@ -111,11 +99,11 @@ export async function fetchUserApplications(uid: string) {
       )
     `,
     )
-    .eq("applicant_id", uid)
-    .order("created_at", { ascending: false });
+    .eq('applicant_id', uid)
+    .order('created_at', { ascending: false });
 
   if (error) {
-    console.error("Error fetching applications:", error);
+    console.error('Error fetching applications:', error);
     return [];
   }
 
@@ -123,8 +111,8 @@ export async function fetchUserApplications(uid: string) {
     id: item.id,
     applicant_id: item.applicant_id,
     job_id: item.job_id,
-    jobTitle: item.jobs?.title || "",
-    companyName: item.jobs?.companies?.name || "",
+    jobTitle: item.jobs?.title || '',
+    companyName: item.jobs?.companies?.name || '',
     status: item.status,
     created_at: item.created_at,
   })) as ApplicationRecord[];
@@ -132,7 +120,7 @@ export async function fetchUserApplications(uid: string) {
 
 export async function fetchSavedJobs(uid: string) {
   const { data, error } = await supabase
-    .from("saved_jobs")
+    .from('saved_jobs')
     .select(
       `
       id,
@@ -147,11 +135,11 @@ export async function fetchSavedJobs(uid: string) {
       )
     `,
     )
-    .eq("user_id", uid)
-    .order("created_at", { ascending: false });
+    .eq('user_id', uid)
+    .order('created_at', { ascending: false });
 
   if (error) {
-    console.error("Error fetching saved jobs:", error);
+    console.error('Error fetching saved jobs:', error);
     return [];
   }
 
@@ -159,28 +147,23 @@ export async function fetchSavedJobs(uid: string) {
     id: item.id,
     user_id: item.user_id,
     job_id: item.job_id,
-    jobTitle: item.jobs?.title || "",
-    companyName: item.jobs?.companies?.name || "",
+    jobTitle: item.jobs?.title || '',
+    companyName: item.jobs?.companies?.name || '',
     created_at: item.created_at,
   })) as SavedJobRecord[];
 }
 
-export async function ensureUserDocument(
-  uid: string,
-  email: string,
-  role: Role,
-  fullName: string,
-) {
+export async function ensureUserDocument(uid: string, email: string, role: Role, fullName: string) {
   // Check if profile exists
   const { data: existingProfile } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("id", uid)
+    .from('profiles')
+    .select('id')
+    .eq('id', uid)
     .single();
 
   if (!existingProfile) {
     // Create profile
-    await supabase.from("profiles").insert({
+    await supabase.from('profiles').insert({
       id: uid,
       full_name: fullName,
     });
@@ -188,14 +171,14 @@ export async function ensureUserDocument(
 
   // Ensure user role
   const { data: existingRole } = await supabase
-    .from("user_roles")
-    .select("id")
-    .eq("user_id", uid)
-    .eq("role", role)
+    .from('user_roles')
+    .select('id')
+    .eq('user_id', uid)
+    .eq('role', role)
     .single();
 
   if (!existingRole) {
-    await supabase.from("user_roles").insert({
+    await supabase.from('user_roles').insert({
       user_id: uid,
       role: role,
     });

@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Link } from "@tanstack/react-router";
+import * as React from 'react';
+import { Link } from '@tanstack/react-router';
 import {
   Menu,
   Briefcase,
@@ -10,8 +10,8 @@ import {
   Bookmark,
   User2,
   Bell,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,10 +19,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useAuth } from "@/lib/auth";
-import { useLang, useT } from "@/lib/i18n";
+} from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/lib/auth';
+import { useLang, useT } from '@/lib/i18n';
 
 function Logo() {
   return (
@@ -32,9 +32,7 @@ function Logo() {
         alt="Talentra logo"
         className="h-10 w-10 rounded-lg object-contain"
       />
-      <span className="font-display text-lg font-semibold tracking-tight">
-        Talentra
-      </span>
+      <span className="font-display text-lg font-semibold tracking-tight">Talentra</span>
     </Link>
   );
 }
@@ -50,12 +48,8 @@ function LangToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setLang("en")}>
-          English
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setLang("sw")}>
-          Kiswahili
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setLang('en')}>English</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setLang('sw')}>Kiswahili</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -64,43 +58,43 @@ function LangToggle() {
 export function SiteHeader() {
   const { user, signOut, roles } = useAuth();
   const t = useT();
-  const isEmployer = roles.includes("employer");
-  const isAdmin = roles.includes("admin");
+  const isEmployer = roles.includes('employer');
+  const isAdmin = roles.includes('admin');
 
   const notifications = React.useMemo(() => {
     if (!user) return [];
     if (isAdmin) {
       return [
         {
-          title: "Content review pending",
-          body: "Review 3 page changes waiting approval.",
+          title: 'Content review pending',
+          body: 'Review 3 page changes waiting approval.',
         },
         {
-          title: "New employer signup",
-          body: "A new employer account just registered.",
+          title: 'New employer signup',
+          body: 'A new employer account just registered.',
         },
       ];
     }
     if (isEmployer) {
       return [
         {
-          title: "New applicant",
-          body: "2 candidates applied to your latest job.",
+          title: 'New applicant',
+          body: '2 candidates applied to your latest job.',
         },
         {
-          title: "Listing performance",
-          body: "Your active jobs received 18 views today.",
+          title: 'Listing performance',
+          body: 'Your active jobs received 18 views today.',
         },
       ];
     }
     return [
       {
-        title: "New job matches",
-        body: "See 5 roles that match your profile.",
+        title: 'New job matches',
+        body: 'See 5 roles that match your profile.',
       },
       {
-        title: "Saved job update",
-        body: "A job you saved has a new salary update.",
+        title: 'Saved job update',
+        body: 'A job you saved has a new salary update.',
       },
     ];
   }, [user, isEmployer, isAdmin]);
@@ -111,43 +105,25 @@ export function SiteHeader() {
         <div className="flex items-center gap-8">
           <Logo />
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link
-              to="/jobs"
-              className="text-foreground/80 hover:text-foreground transition"
-            >
-              {t("browse_jobs")}
+            <Link to="/jobs" className="text-foreground/80 hover:text-foreground transition">
+              {t('browse_jobs')}
             </Link>
-            <Link
-              to="/job-seekers"
-              className="text-foreground/80 hover:text-foreground transition"
-            >
+            <Link to="/job-seekers" className="text-foreground/80 hover:text-foreground transition">
               For job seekers
             </Link>
-            <Link
-              to="/employers"
-              className="text-foreground/80 hover:text-foreground transition"
-            >
+            <Link to="/employers" className="text-foreground/80 hover:text-foreground transition">
               For employers
             </Link>
             {isAdmin ? (
-              <Link
-                to="/admin"
-                className="text-foreground/80 hover:text-foreground transition"
-              >
+              <Link to="/admin" className="text-foreground/80 hover:text-foreground transition">
                 Admin
               </Link>
             ) : null}
-            <Link
-              to="/post-job"
-              className="text-foreground/80 hover:text-foreground transition"
-            >
-              {t("post_job")}
+            <Link to="/post-job" className="text-foreground/80 hover:text-foreground transition">
+              {t('post_job')}
             </Link>
-            <Link
-              to="/about"
-              className="text-foreground/80 hover:text-foreground transition"
-            >
-              {t("about")}
+            <Link to="/about" className="text-foreground/80 hover:text-foreground transition">
+              {t('about')}
             </Link>
           </nav>
         </div>
@@ -158,11 +134,7 @@ export function SiteHeader() {
             <>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="relative rounded-full"
-                  >
+                  <Button variant="ghost" size="icon" className="relative rounded-full">
                     <Bell className="h-4 w-4" />
                     {notifications.length ? (
                       <span className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background" />
@@ -178,9 +150,7 @@ export function SiteHeader() {
                         className="flex flex-col items-start gap-1 py-3"
                       >
                         <span className="font-medium">{item.title}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {item.body}
-                        </span>
+                        <span className="text-xs text-muted-foreground">{item.body}</span>
                       </DropdownMenuItem>
                     ))
                   ) : (
@@ -190,60 +160,44 @@ export function SiteHeader() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="hidden md:inline-flex"
-              >
-                <Link to="/dashboard">{t("dashboard")}</Link>
+              <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
+                <Link to="/dashboard">{t('dashboard')}</Link>
               </Button>
               {isEmployer ? (
                 <Button asChild size="sm" className="hidden md:inline-flex">
-                  <Link to="/post-job">{t("post_job")}</Link>
+                  <Link to="/post-job">{t('post_job')}</Link>
                 </Button>
               ) : null}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full"
-                  >
+                  <Button variant="outline" size="icon" className="rounded-full">
                     <User2 className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel className="truncate">
-                    {user.email}
-                  </DropdownMenuLabel>
+                  <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/dashboard">
                       <LayoutDashboard className="h-4 w-4" />
-                      {t("dashboard")}
+                      {t('dashboard')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={signOut}>
                     <LogOut className="h-4 w-4" />
-                    {t("sign_out")}
+                    {t('sign_out')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
           ) : (
             <>
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="hidden sm:inline-flex"
-              >
-                <Link to="/auth">{t("sign_in")}</Link>
+              <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+                <Link to="/auth">{t('sign_in')}</Link>
               </Button>
               <Button asChild size="sm">
-                <Link to="/auth" search={{ mode: "signup" }}>
-                  {t("sign_up")}
+                <Link to="/auth" search={{ mode: 'signup' }}>
+                  {t('sign_up')}
                 </Link>
               </Button>
             </>
@@ -257,55 +211,31 @@ export function SiteHeader() {
             </SheetTrigger>
             <SheetContent>
               <div className="mt-8 flex flex-col gap-1">
-                <Link
-                  to="/jobs"
-                  className="px-3 py-3 rounded-lg hover:bg-muted"
-                >
-                  {t("browse_jobs")}
+                <Link to="/jobs" className="px-3 py-3 rounded-lg hover:bg-muted">
+                  {t('browse_jobs')}
                 </Link>
-                <Link
-                  to="/job-seekers"
-                  className="px-3 py-3 rounded-lg hover:bg-muted"
-                >
+                <Link to="/job-seekers" className="px-3 py-3 rounded-lg hover:bg-muted">
                   For job seekers
                 </Link>
-                <Link
-                  to="/employers"
-                  className="px-3 py-3 rounded-lg hover:bg-muted"
-                >
+                <Link to="/employers" className="px-3 py-3 rounded-lg hover:bg-muted">
                   For employers
                 </Link>
-                <Link
-                  to="/post-job"
-                  className="px-3 py-3 rounded-lg hover:bg-muted"
-                >
-                  {t("post_job")}
+                <Link to="/post-job" className="px-3 py-3 rounded-lg hover:bg-muted">
+                  {t('post_job')}
                 </Link>
                 {isAdmin ? (
-                  <Link
-                    to="/admin"
-                    className="px-3 py-3 rounded-lg hover:bg-muted"
-                  >
+                  <Link to="/admin" className="px-3 py-3 rounded-lg hover:bg-muted">
                     Admin
                   </Link>
                 ) : null}
-                <Link
-                  to="/dashboard"
-                  className="px-3 py-3 rounded-lg hover:bg-muted"
-                >
-                  {t("dashboard")}
+                <Link to="/dashboard" className="px-3 py-3 rounded-lg hover:bg-muted">
+                  {t('dashboard')}
                 </Link>
-                <Link
-                  to="/about"
-                  className="px-3 py-3 rounded-lg hover:bg-muted"
-                >
-                  {t("about")}
+                <Link to="/about" className="px-3 py-3 rounded-lg hover:bg-muted">
+                  {t('about')}
                 </Link>
-                <Link
-                  to="/contact"
-                  className="px-3 py-3 rounded-lg hover:bg-muted"
-                >
-                  {t("contact")}
+                <Link to="/contact" className="px-3 py-3 rounded-lg hover:bg-muted">
+                  {t('contact')}
                 </Link>
               </div>
             </SheetContent>
@@ -384,12 +314,12 @@ export function SiteFooter() {
 export function MobileBottomNav() {
   const { user } = useAuth();
   const items = [
-    { to: "/", label: "Home", icon: Search },
-    { to: "/jobs", label: "Jobs", icon: Briefcase },
-    { to: "/dashboard", label: "Saved", icon: Bookmark },
+    { to: '/', label: 'Home', icon: Search },
+    { to: '/jobs', label: 'Jobs', icon: Briefcase },
+    { to: '/dashboard', label: 'Saved', icon: Bookmark },
     {
-      to: user ? "/dashboard" : "/auth",
-      label: user ? "Me" : "Sign in",
+      to: user ? '/dashboard' : '/auth',
+      label: user ? 'Me' : 'Sign in',
       icon: User2,
     },
   ] as const;
@@ -401,7 +331,7 @@ export function MobileBottomNav() {
             <Link
               to={it.to}
               className="flex flex-col items-center gap-1 py-2.5 text-[11px] text-muted-foreground hover:text-foreground"
-              activeProps={{ className: "text-accent" }}
+              activeProps={{ className: 'text-accent' }}
             >
               <it.icon className="h-5 w-5" />
               {it.label}
