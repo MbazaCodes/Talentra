@@ -1,0 +1,23 @@
+TypeError: storage.getItem is not a function
+    at getItemAsync (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\lib\helpers.ts:133:31)
+    at SupabaseAuthClient._recoverAndRefresh (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:4544:49)
+    at SupabaseAuthClient._initialize (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:600:18)
+    at <anonymous> (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:522:27)
+    at <anonymous> (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:2709:26)
+    at SupabaseAuthClient.lockNoOp (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:204:16)
+    at SupabaseAuthClient._acquireLock (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:2703:25)
+    at <anonymous> (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:521:25)
+    at SupabaseAuthClient.initialize (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:524:7)
+    at new GoTrueClient (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:468:12)
+(node:5504) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+Auto refresh tick failed with error. This is likely a transient error. TypeError: storage.getItem is not a function
+    at getItemAsync (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\lib\helpers.ts:133:31)
+    at SupabaseAuthClient.__loadSession (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:2819:46)
+    at SupabaseAuthClient._useSession (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:2777:33)
+    at <anonymous> (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:4993:31)
+    at <anonymous> (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:2709:26)
+    at SupabaseAuthClient.lockNoOp (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:204:16)
+    at SupabaseAuthClient._acquireLock (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:2703:25)
+    at SupabaseAuthClient._autoRefreshTokenTick (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:4988:18)
+    at Timeout._onTimeout (C:\Users\DELL\Downloads\kazi-connect-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:4862:18)
