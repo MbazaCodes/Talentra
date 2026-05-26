@@ -41,14 +41,21 @@ export interface SavedJobRecord {
 }
 
 export async function getUserProfile(uid: string) {
-  const { data, error } = await supabase.from("profiles").select("*").eq("id", uid).single();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", uid)
+    .single();
 
   if (error || !data) return null;
   return data as SeekerProfile;
 }
 
-export async function saveUserProfile(uid: string, profile: Partial<SeekerProfile>) {
-  const updateData: any = {
+export async function saveUserProfile(
+  uid: string,
+  profile: Partial<SeekerProfile>,
+) {
+  const updateData: unknown = {
     updated_at: new Date().toISOString(),
   };
 
@@ -58,7 +65,10 @@ export async function saveUserProfile(uid: string, profile: Partial<SeekerProfil
   if (profile.location !== undefined) updateData.location = profile.location;
   if (profile.phone !== undefined) updateData.phone = profile.phone;
 
-  const { error } = await supabase.from("profiles").update(updateData).eq("id", uid);
+  const { error } = await supabase
+    .from("profiles")
+    .update(updateData)
+    .eq("id", uid);
 
   if (error) throw error;
 }
@@ -69,7 +79,9 @@ export async function uploadResumeFile(uid: string, file: File) {
   const fileName = `${uid}/${timestamp}.${fileExt}`;
   const filePath = `resumes/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage.from("resumes").upload(filePath, file);
+  const { error: uploadError } = await supabase.storage
+    .from("resumes")
+    .upload(filePath, file);
 
   if (uploadError) throw uploadError;
 
@@ -107,7 +119,7 @@ export async function fetchUserApplications(uid: string) {
     return [];
   }
 
-  return data.map((item: any) => ({
+  return data.map((item: unknown) => ({
     id: item.id,
     applicant_id: item.applicant_id,
     job_id: item.job_id,
@@ -143,7 +155,7 @@ export async function fetchSavedJobs(uid: string) {
     return [];
   }
 
-  return data.map((item: any) => ({
+  return data.map((item: unknown) => ({
     id: item.id,
     user_id: item.user_id,
     job_id: item.job_id,
@@ -153,7 +165,12 @@ export async function fetchSavedJobs(uid: string) {
   })) as SavedJobRecord[];
 }
 
-export async function ensureUserDocument(uid: string, email: string, role: Role, fullName: string) {
+export async function ensureUserDocument(
+  uid: string,
+  email: string,
+  role: Role,
+  fullName: string,
+) {
   // Check if profile exists
   const { data: existingProfile } = await supabase
     .from("profiles")

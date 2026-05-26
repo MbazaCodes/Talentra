@@ -55,7 +55,10 @@ function Contact() {
                 maxLength={2000}
               />
             </div>
-            <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Button
+              type="submit"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
               Send message
             </Button>
           </form>

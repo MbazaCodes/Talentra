@@ -6,9 +6,7 @@
   "_arrow-left-ubG9ohLg.js": {
     "file": "assets/arrow-left-ubG9ohLg.js",
     "name": "arrow-left",
-    "imports": [
-      "_site-chrome-Bvu9S7aA.js"
-    ]
+    "imports": ["_site-chrome-Bvu9S7aA.js"]
   },
   "_badge-BgXVePyZ.js": {
     "file": "assets/badge-BgXVePyZ.js",
@@ -22,18 +20,12 @@
   "_card-Ej90xD4L.js": {
     "file": "assets/card-Ej90xD4L.js",
     "name": "card",
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_router-CHXEIgg2.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_router-CHXEIgg2.js"]
   },
   "_client-D4K_z1dx.js": {
     "file": "assets/client-D4K_z1dx.js",
     "name": "client",
-    "imports": [
-      "_router-CHXEIgg2.js",
-      "_server-Dnqa4y-f.js"
-    ]
+    "imports": ["_router-CHXEIgg2.js", "_server-Dnqa4y-f.js"]
   },
   "_firebase-data-BUO9wKcd.js": {
     "file": "assets/firebase-data-BUO9wKcd.js",
@@ -47,24 +39,17 @@
   "_globe-QP9j5P55.js": {
     "file": "assets/globe-QP9j5P55.js",
     "name": "globe",
-    "imports": [
-      "_site-chrome-Bvu9S7aA.js"
-    ]
+    "imports": ["_site-chrome-Bvu9S7aA.js"]
   },
   "_index-CV0emg7h.js": {
     "file": "assets/index-CV0emg7h.js",
     "name": "index",
-    "imports": [
-      "_server-Dnqa4y-f.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js"]
   },
   "_input-iG5zEoI9.js": {
     "file": "assets/input-iG5zEoI9.js",
     "name": "input",
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_router-CHXEIgg2.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_router-CHXEIgg2.js"]
   },
   "_job-card-BjFLV_sn.js": {
     "file": "assets/job-card-BjFLV_sn.js",
@@ -95,17 +80,13 @@
   "_map-pin-CkjyBNpx.js": {
     "file": "assets/map-pin-CkjyBNpx.js",
     "name": "map-pin",
-    "imports": [
-      "_site-chrome-Bvu9S7aA.js"
-    ]
+    "imports": ["_site-chrome-Bvu9S7aA.js"]
   },
   "_router-CHXEIgg2.js": {
     "file": "assets/router-CHXEIgg2.js",
     "name": "router",
     "isDynamicEntry": true,
-    "imports": [
-      "_server-Dnqa4y-f.js"
-    ],
+    "imports": ["_server-Dnqa4y-f.js"],
     "dynamicImports": [
       "src/routes/post-job.tsx?tsr-split=component",
       "src/routes/jobs.tsx?tsr-split=component",
@@ -190,32 +171,22 @@
   "_shield-check-BwmLv38s.js": {
     "file": "assets/shield-check-BwmLv38s.js",
     "name": "shield-check",
-    "imports": [
-      "_site-chrome-Bvu9S7aA.js"
-    ]
+    "imports": ["_site-chrome-Bvu9S7aA.js"]
   },
   "_site-chrome-Bvu9S7aA.js": {
     "file": "assets/site-chrome-Bvu9S7aA.js",
     "name": "site-chrome",
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_router-CHXEIgg2.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_router-CHXEIgg2.js"]
   },
   "_sparkles-BJXlPMQM.js": {
     "file": "assets/sparkles-BJXlPMQM.js",
     "name": "sparkles",
-    "imports": [
-      "_site-chrome-Bvu9S7aA.js"
-    ]
+    "imports": ["_site-chrome-Bvu9S7aA.js"]
   },
   "_textarea-rlBQz2Te.js": {
     "file": "assets/textarea-rlBQz2Te.js",
     "name": "textarea",
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_router-CHXEIgg2.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_router-CHXEIgg2.js"]
   },
   "_types-BvBJ3Z1V.js": {
     "file": "assets/types-BvBJ3Z1V.js",
@@ -230,9 +201,7 @@
   "_worker-entry-tm0zc3qN.js": {
     "file": "assets/worker-entry-tm0zc3qN.js",
     "name": "worker-entry",
-    "dynamicImports": [
-      "_server-Dnqa4y-f.js"
-    ]
+    "dynamicImports": ["_server-Dnqa4y-f.js"]
   },
   "node_modules/@fontsource/manrope/files/manrope-cyrillic-400-normal.woff": {
     "file": "assets/manrope-cyrillic-400-normal-Dvx59UGC.woff",
@@ -538,9 +507,7 @@
       "_index-CV0emg7h.js",
       "_card-Ej90xD4L.js"
     ],
-    "assets": [
-      "assets/hero-kazi-D177CsWw.jpg"
-    ]
+    "assets": ["assets/hero-kazi-D177CsWw.jpg"]
   },
   "src/routes/job-seekers.tsx?tsr-split=component": {
     "file": "assets/job-seekers-BW5eFqlb.js",
@@ -621,10 +588,7 @@
     "name": "start",
     "src": "src/start.ts",
     "isDynamicEntry": true,
-    "imports": [
-      "_server-Dnqa4y-f.js",
-      "_worker-entry-tm0zc3qN.js"
-    ]
+    "imports": ["_server-Dnqa4y-f.js", "_worker-entry-tm0zc3qN.js"]
   },
   "tanstack-start-manifest:v": {
     "file": "assets/_tanstack-start-manifest_v-Bn8r-Uk1.js",
@@ -637,8 +601,6 @@
     "name": "index",
     "src": "virtual:cloudflare/worker-entry",
     "isEntry": true,
-    "imports": [
-      "_worker-entry-tm0zc3qN.js"
-    ]
+    "imports": ["_worker-entry-tm0zc3qN.js"]
   }
 }

@@ -1,7 +1,15 @@
 import * as React from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search, MapPin, ArrowRight, BadgeCheck, Briefcase, Users, Sparkles } from "lucide-react";
+import {
+  Search,
+  MapPin,
+  ArrowRight,
+  BadgeCheck,
+  Briefcase,
+  Users,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,8 +20,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { SiteHeader, SiteFooter, MobileBottomNav } from "@/components/site-chrome";
-import { JobCard, JobCardSkeleton, type JobCardData } from "@/components/job-card";
+import {
+  SiteHeader,
+  SiteFooter,
+  MobileBottomNav,
+} from "@/components/site-chrome";
+import {
+  JobCard,
+  JobCardSkeleton,
+  type JobCardData,
+} from "@/components/job-card";
 import { supabase } from "@/integrations/supabase/client";
 import { REGIONS, INDUSTRIES } from "@/lib/kazi-data";
 import { useT, useLang } from "@/lib/i18n";
@@ -47,7 +63,10 @@ function LandingPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate({ to: "/jobs", search: { q: q || undefined, region: region || undefined } as never });
+    navigate({
+      to: "/jobs",
+      search: { q: q || undefined, region: region || undefined } as never,
+    });
   };
 
   return (
@@ -58,7 +77,10 @@ function LandingPage() {
       <section className="relative overflow-hidden">
         <div className="container mx-auto px-4 py-12 md:py-20 grid md:grid-cols-2 gap-10 items-center">
           <div className="space-y-6">
-            <Badge variant="secondary" className="bg-cream border border-border text-foreground/80">
+            <Badge
+              variant="secondary"
+              className="bg-cream border border-border text-foreground/80"
+            >
               <Sparkles className="h-3 w-3 mr-1 text-accent" /> {t("tagline")}
             </Badge>
             <h1 className="font-display text-4xl md:text-6xl font-bold leading-[1.05]">
@@ -68,7 +90,9 @@ function LandingPage() {
                 <span className="absolute -bottom-1 left-0 right-0 h-2 bg-peach/50 -z-10 rounded" />
               </span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl">{t("hero_sub")}</p>
+            <p className="text-lg text-muted-foreground max-w-xl">
+              {t("hero_sub")}
+            </p>
 
             <form
               onSubmit={handleSearch}
@@ -109,16 +133,18 @@ function LandingPage() {
 
             <div className="flex flex-wrap gap-2 text-sm">
               <span className="text-muted-foreground">Popular:</span>
-              {["Dar es Salaam", "ICT", "NGO", "Banking", "Remote"].map((tag) => (
-                <Link
-                  key={tag}
-                  to="/jobs"
-                  search={{ q: tag } as never}
-                  className="text-foreground/80 hover:text-accent underline-offset-4 hover:underline"
-                >
-                  {tag}
-                </Link>
-              ))}
+              {["Dar es Salaam", "ICT", "NGO", "Banking", "Remote"].map(
+                (tag) => (
+                  <Link
+                    key={tag}
+                    to="/jobs"
+                    search={{ q: tag } as never}
+                    className="text-foreground/80 hover:text-accent underline-offset-4 hover:underline"
+                  >
+                    {tag}
+                  </Link>
+                ),
+              )}
             </div>
           </div>
 
@@ -146,7 +172,9 @@ function LandingPage() {
               </div>
               <div className="text-sm">
                 <div className="font-display font-semibold">800+</div>
-                <div className="text-xs text-muted-foreground">Verified employers</div>
+                <div className="text-xs text-muted-foreground">
+                  Verified employers
+                </div>
               </div>
             </div>
           </div>
@@ -156,7 +184,9 @@ function LandingPage() {
       {/* Industries */}
       <section className="container mx-auto px-4 py-12">
         <div className="flex items-end justify-between mb-6">
-          <h2 className="font-display text-2xl md:text-3xl font-semibold">Browse by industry</h2>
+          <h2 className="font-display text-2xl md:text-3xl font-semibold">
+            Browse by industry
+          </h2>
           <Link
             to="/jobs"
             className="text-sm text-accent hover:underline inline-flex items-center gap-1"
@@ -223,7 +253,8 @@ function LandingPage() {
               Hire the right talent across Tanzania, faster.
             </h3>
             <p className="mt-3 text-primary-foreground/80">
-              Post your first job free. Reach verified candidates in every region.
+              Post your first job free. Reach verified candidates in every
+              region.
             </p>
           </div>
           <div className="flex md:justify-end">

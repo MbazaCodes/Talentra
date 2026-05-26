@@ -48,7 +48,9 @@ function AdminPage() {
         reportsRes,
       ] = await Promise.all([
         supabase.from("jobs").select("*", { count: "exact", head: true }),
-        supabase.from("applications").select("*", { count: "exact", head: true }),
+        supabase
+          .from("applications")
+          .select("*", { count: "exact", head: true }),
         supabase
           .from("user_roles")
           .select("*", { count: "exact", head: true })
@@ -57,7 +59,9 @@ function AdminPage() {
           .from("user_roles")
           .select("*", { count: "exact", head: true })
           .eq("role", "job_seeker"),
-        supabase.from("job_reports").select("*", { count: "exact", head: true }),
+        supabase
+          .from("job_reports")
+          .select("*", { count: "exact", head: true }),
         supabase
           .from("jobs")
           .select(
@@ -72,7 +76,9 @@ function AdminPage() {
           .limit(12),
         supabase
           .from("job_reports")
-          .select("id,reason,status,details,created_at,job_id,jobs(id,title,companies(name))")
+          .select(
+            "id,reason,status,details,created_at,job_id,jobs(id,title,companies(name))",
+          )
           .order("created_at", { ascending: false })
           .limit(12),
       ]);
@@ -97,15 +103,27 @@ function AdminPage() {
     queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
   };
 
-  const handleCompanyAction = async (companyId: string, patch: CompanyUpdate) => {
-    const { error } = await supabase.from("companies").update(patch).eq("id", companyId);
+  const handleCompanyAction = async (
+    companyId: string,
+    patch: CompanyUpdate,
+  ) => {
+    const { error } = await supabase
+      .from("companies")
+      .update(patch)
+      .eq("id", companyId);
     if (error) return toast.error(error.message);
     toast.success("Company updated");
     queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
   };
 
-  const handleReportAction = async (reportId: string, patch: JobReportUpdate) => {
-    const { error } = await supabase.from("job_reports").update(patch).eq("id", reportId);
+  const handleReportAction = async (
+    reportId: string,
+    patch: JobReportUpdate,
+  ) => {
+    const { error } = await supabase
+      .from("job_reports")
+      .update(patch)
+      .eq("id", reportId);
     if (error) return toast.error(error.message);
     toast.success("Report updated");
     queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
@@ -132,10 +150,15 @@ function AdminPage() {
           <section className="rounded-3xl border border-border bg-card p-10 shadow-sm">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent">Admin console</p>
-                <h1 className="mt-4 font-display text-4xl font-bold">Talentra platform controls</h1>
+                <p className="text-sm uppercase tracking-[0.2em] text-accent">
+                  Admin console
+                </p>
+                <h1 className="mt-4 font-display text-4xl font-bold">
+                  Talentra platform controls
+                </h1>
                 <p className="mt-3 text-muted-foreground max-w-2xl">
-                  Review reports, manage employers, and keep the marketplace safe and productive.
+                  Review reports, manage employers, and keep the marketplace
+                  safe and productive.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -156,19 +179,27 @@ function AdminPage() {
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Card className="p-6">
               <p className="text-sm text-muted-foreground">Published jobs</p>
-              <h2 className="mt-3 text-3xl font-semibold">{summary.totalJobs}</h2>
+              <h2 className="mt-3 text-3xl font-semibold">
+                {summary.totalJobs}
+              </h2>
             </Card>
             <Card className="p-6">
               <p className="text-sm text-muted-foreground">Active employers</p>
-              <h2 className="mt-3 text-3xl font-semibold">{summary.employerCount}</h2>
+              <h2 className="mt-3 text-3xl font-semibold">
+                {summary.employerCount}
+              </h2>
             </Card>
             <Card className="p-6">
               <p className="text-sm text-muted-foreground">Job seekers</p>
-              <h2 className="mt-3 text-3xl font-semibold">{summary.seekerCount}</h2>
+              <h2 className="mt-3 text-3xl font-semibold">
+                {summary.seekerCount}
+              </h2>
             </Card>
             <Card className="p-6">
               <p className="text-sm text-muted-foreground">Open reports</p>
-              <h2 className="mt-3 text-3xl font-semibold">{summary.reportCount}</h2>
+              <h2 className="mt-3 text-3xl font-semibold">
+                {summary.reportCount}
+              </h2>
             </Card>
           </section>
 
@@ -176,7 +207,9 @@ function AdminPage() {
             <Card className="p-6 lg:col-span-2">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="font-display text-2xl font-semibold">Recent jobs</h2>
+                  <h2 className="font-display text-2xl font-semibold">
+                    Recent jobs
+                  </h2>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Review and moderate the latest published roles.
                   </p>
@@ -187,7 +220,10 @@ function AdminPage() {
               <div className="mt-6 space-y-4">
                 {summary.jobs.length ? (
                   summary.jobs.map((job) => (
-                    <div key={job.id} className="rounded-3xl border border-border p-4">
+                    <div
+                      key={job.id}
+                      className="rounded-3xl border border-border p-4"
+                    >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <p className="font-semibold">{job.title}</p>
@@ -198,7 +234,11 @@ function AdminPage() {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Badge
-                            variant={job.status === "published" ? "secondary" : "outline"}
+                            variant={
+                              job.status === "published"
+                                ? "secondary"
+                                : "outline"
+                            }
                             className="uppercase text-[10px]"
                           >
                             {job.status}
@@ -206,7 +246,11 @@ function AdminPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleJobAction(job.id, { featured: !job.featured })}
+                            onClick={() =>
+                              handleJobAction(job.id, {
+                                featured: !job.featured,
+                              })
+                            }
                           >
                             {job.featured ? "Unfeature" : "Feature"}
                           </Button>
@@ -215,7 +259,10 @@ function AdminPage() {
                             variant="outline"
                             onClick={() =>
                               handleJobAction(job.id, {
-                                status: job.status === "closed" ? "published" : "closed",
+                                status:
+                                  job.status === "closed"
+                                    ? "published"
+                                    : "closed",
                               })
                             }
                           >
@@ -234,14 +281,19 @@ function AdminPage() {
             </Card>
 
             <Card className="p-6">
-              <h2 className="font-display text-2xl font-semibold">Employer profiles</h2>
+              <h2 className="font-display text-2xl font-semibold">
+                Employer profiles
+              </h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Verify trusted employers and suspend suspicious accounts.
               </p>
               <div className="mt-6 space-y-4">
                 {summary.companies.length ? (
                   summary.companies.map((company) => (
-                    <div key={company.id} className="rounded-3xl border border-border p-4">
+                    <div
+                      key={company.id}
+                      className="rounded-3xl border border-border p-4"
+                    >
                       <p className="font-semibold">{company.name}</p>
                       <p className="text-sm text-muted-foreground mt-1">
                         {company.website ?? "No website"}
@@ -249,11 +301,19 @@ function AdminPage() {
                       <div className="mt-4 flex flex-wrap gap-2">
                         <Badge
                           variant="secondary"
-                          className={company.verified ? "bg-green-100 text-green-800" : undefined}
+                          className={
+                            company.verified
+                              ? "bg-green-100 text-green-800"
+                              : undefined
+                          }
                         >
                           {company.verified ? "Verified" : "Not verified"}
                         </Badge>
-                        <Badge variant={company.suspended ? "destructive" : "secondary"}>
+                        <Badge
+                          variant={
+                            company.suspended ? "destructive" : "secondary"
+                          }
+                        >
                           {company.suspended ? "Suspended" : "Active"}
                         </Badge>
                       </div>
@@ -262,7 +322,9 @@ function AdminPage() {
                           size="sm"
                           variant="outline"
                           onClick={() =>
-                            handleCompanyAction(company.id, { verified: !company.verified })
+                            handleCompanyAction(company.id, {
+                              verified: !company.verified,
+                            })
                           }
                         >
                           {company.verified ? "Unverify" : "Verify"}
@@ -271,7 +333,9 @@ function AdminPage() {
                           size="sm"
                           variant="outline"
                           onClick={() =>
-                            handleCompanyAction(company.id, { suspended: !company.suspended })
+                            handleCompanyAction(company.id, {
+                              suspended: !company.suspended,
+                            })
                           }
                         >
                           {company.suspended ? "Unsuspend" : "Suspend"}
@@ -291,7 +355,9 @@ function AdminPage() {
           <section className="rounded-3xl border border-border bg-card p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="font-display text-2xl font-semibold">Recent reports</h2>
+                <h2 className="font-display text-2xl font-semibold">
+                  Recent reports
+                </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Review flagged jobs and mark reports as handled.
                 </p>
@@ -302,26 +368,44 @@ function AdminPage() {
             <div className="mt-6 space-y-4">
               {summary.reports.length ? (
                 summary.reports.map((report) => (
-                  <div key={report.id} className="rounded-3xl border border-border p-4">
+                  <div
+                    key={report.id}
+                    className="rounded-3xl border border-border p-4"
+                  >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="font-semibold">{report.jobs?.title || "Reported job"}</p>
+                        <p className="font-semibold">
+                          {report.jobs?.title || "Reported job"}
+                        </p>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {report.reason} · {report.jobs?.companies?.name ?? "Unknown employer"}
+                          {report.reason} ·{" "}
+                          {report.jobs?.companies?.name ?? "Unknown employer"}
                         </p>
                         {report.details ? (
-                          <p className="text-sm mt-2 text-foreground/80">"{report.details}"</p>
+                          <p className="text-sm mt-2 text-foreground/80">
+                            "{report.details}"
+                          </p>
                         ) : null}
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <Badge variant={report.status === "open" ? "destructive" : "secondary"}>
+                        <Badge
+                          variant={
+                            report.status === "open"
+                              ? "destructive"
+                              : "secondary"
+                          }
+                        >
                           {report.status}
                         </Badge>
                         {report.status !== "reviewed" ? (
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleReportAction(report.id, { status: "reviewed" })}
+                            onClick={() =>
+                              handleReportAction(report.id, {
+                                status: "reviewed",
+                              })
+                            }
                           >
                             Mark reviewed
                           </Button>

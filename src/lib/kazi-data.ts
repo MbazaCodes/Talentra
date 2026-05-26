@@ -25,7 +25,11 @@ export const INDUSTRIES: { en: string; sw: string; value: string }[] = [
   { value: "construction", en: "Construction", sw: "Ujenzi" },
   { value: "ict", en: "Technology / ICT", sw: "Teknolojia" },
   { value: "mining", en: "Mining", sw: "Madini" },
-  { value: "ngo", en: "NGO & Development", sw: "Mashirika Yasiyo ya Kiserikali" },
+  {
+    value: "ngo",
+    en: "NGO & Development",
+    sw: "Mashirika Yasiyo ya Kiserikali",
+  },
   { value: "government", en: "Government", sw: "Serikali" },
   { value: "logistics", en: "Transport & Logistics", sw: "Usafirishaji" },
   { value: "manufacturing", en: "Manufacturing", sw: "Viwanda" },
@@ -72,7 +76,10 @@ export const SALARY_BANDS = [
   { value: "10m_plus", label: "Above TZS 10M", min: 10_000_000, max: null },
 ] as const;
 
-export function industryLabel(value: string | null | undefined, lang: "en" | "sw" = "en") {
+export function industryLabel(
+  value: string | null | undefined,
+  lang: "en" | "sw" = "en",
+) {
   const m = INDUSTRIES.find((i) => i.value === value);
   return m ? m[lang] : (value ?? "");
 }

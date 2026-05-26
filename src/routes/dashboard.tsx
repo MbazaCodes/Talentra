@@ -11,7 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { SiteHeader, SiteFooter, MobileBottomNav } from "@/components/site-chrome";
+import {
+  SiteHeader,
+  SiteFooter,
+  MobileBottomNav,
+} from "@/components/site-chrome";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
@@ -62,7 +66,10 @@ function Dashboard() {
         description: "Help employers understand your experience.",
       });
     if (!profile?.location)
-      items.push({ title: "Set your location", description: "Nearby roles are easier to match." });
+      items.push({
+        title: "Set your location",
+        description: "Nearby roles are easier to match.",
+      });
     if (!profile?.skills?.length)
       items.push({
         title: "Share your top skills",
@@ -116,11 +123,16 @@ function Dashboard() {
           {suggestions.map((item) => (
             <Card key={item.title} className="p-5">
               <h3 className="font-semibold">{item.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {item.description}
+              </p>
             </Card>
           ))}
         </div>
-        <Tabs defaultValue={isEmployer ? "employer" : "seeker"} className="mt-6">
+        <Tabs
+          defaultValue={isEmployer ? "employer" : "seeker"}
+          className="mt-6"
+        >
           <TabsList>
             <TabsTrigger value="seeker">Job seeker</TabsTrigger>
             {isEmployer && <TabsTrigger value="employer">Employer</TabsTrigger>}
@@ -130,7 +142,9 @@ function Dashboard() {
               user={user}
               profile={profile ?? null}
               refetchProfile={() =>
-                queryClient.invalidateQueries({ queryKey: ["supabase-profile", user.id] })
+                queryClient.invalidateQueries({
+                  queryKey: ["supabase-profile", user.id],
+                })
               }
             />
           </TabsContent>
@@ -166,19 +180,30 @@ function ProfileForm({
   const [headline, setHeadline] = React.useState(profile?.headline ?? "");
   const [location, setLocation] = React.useState(profile?.location ?? "");
   const [bio, setBio] = React.useState(profile?.bio ?? "");
-  const [portfolioUrl, setPortfolioUrl] = React.useState(profile?.portfolioUrl ?? "");
+  const [portfolioUrl, setPortfolioUrl] = React.useState(
+    profile?.portfolioUrl ?? "",
+  );
   const [skillInput, setSkillInput] = React.useState("");
   const [skills, setSkills] = React.useState<string[]>(profile?.skills ?? []);
-  const [experience, setExperience] = React.useState((profile?.experience ?? []).join("\n"));
-  const [education, setEducation] = React.useState((profile?.education ?? []).join("\n"));
+  const [experience, setExperience] = React.useState(
+    (profile?.experience ?? []).join("\n"),
+  );
+  const [education, setEducation] = React.useState(
+    (profile?.education ?? []).join("\n"),
+  );
   const [busy, setBusy] = React.useState(false);
 
   const profileCompletion = React.useMemo(
     () =>
       Math.round(
-        ([headline, bio, location, skills.length > 0, portfolioUrl, profile?.resumeUrl].filter(
-          Boolean,
-        ).length /
+        ([
+          headline,
+          bio,
+          location,
+          skills.length > 0,
+          portfolioUrl,
+          profile?.resumeUrl,
+        ].filter(Boolean).length /
           6) *
           100,
       ),
@@ -225,7 +250,9 @@ function ProfileForm({
     }
   };
 
-  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleResumeUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setBusy(true);
@@ -246,7 +273,9 @@ function ProfileForm({
       <Card className="p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-display text-lg font-semibold">Profile builder</h2>
+            <h2 className="font-display text-lg font-semibold">
+              Profile builder
+            </h2>
             <p className="text-sm text-muted-foreground mt-1">
               A complete seeker profile helps you stand out to hiring teams.
             </p>
@@ -257,7 +286,10 @@ function ProfileForm({
           <div className="space-y-4">
             <div>
               <Label>Full name</Label>
-              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+              <Input
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
             </div>
             <div>
               <Label>Headline</Label>
@@ -303,7 +335,11 @@ function ProfileForm({
                   onChange={(e) => setSkillInput(e.target.value)}
                   placeholder="Add a skill"
                 />
-                <Button type="button" variant="secondary" onClick={handleAddSkill}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleAddSkill}
+                >
                   Add
                 </Button>
               </div>
@@ -345,7 +381,11 @@ function ProfileForm({
         <div className="grid gap-4 mt-6 md:grid-cols-2 items-end">
           <div>
             <Label>Resume</Label>
-            <Input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={handleResumeUpload}
+            />
             {profile?.resumeUrl && (
               <p className="text-sm text-muted-foreground mt-2">
                 Resume uploaded.{" "}
@@ -401,16 +441,22 @@ function SeekerView({
     queryFn: () => fetchSavedJobs(user.id),
     enabled: !!user.id,
   });
-  const completeStatus = profile?.verified || user?.user_metadata?.email_confirmed;
+  const completeStatus =
+    profile?.verified || user?.user_metadata?.email_confirmed;
 
   const handleSendVerification = async () => {
     if (!user?.email) return;
     try {
-      const { error } = await supabase.auth.resend({ type: "signup", email: user.email });
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: user.email,
+      });
       if (error) throw error;
       toast.success("Verification email sent. Check your inbox.");
     } catch (error) {
-      toast.error((error as Error).message || "Unable to send verification email.");
+      toast.error(
+        (error as Error).message || "Unable to send verification email.",
+      );
     }
   };
 
@@ -421,7 +467,9 @@ function SeekerView({
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-display text-lg font-semibold">Applications</h3>
+              <h3 className="font-display text-lg font-semibold">
+                Applications
+              </h3>
               <p className="text-sm text-muted-foreground">
                 Track your active and past applications.
               </p>
@@ -431,11 +479,16 @@ function SeekerView({
           <div className="space-y-3">
             {applications?.length ? (
               applications.map((app) => (
-                <div key={app.id} className="rounded-xl border border-border p-4">
+                <div
+                  key={app.id}
+                  className="rounded-xl border border-border p-4"
+                >
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="font-medium">{app.jobTitle}</p>
-                      <p className="text-sm text-muted-foreground">{app.companyName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {app.companyName}
+                      </p>
                     </div>
                     <Badge variant="outline" className="uppercase text-[10px]">
                       {app.status}
@@ -445,8 +498,8 @@ function SeekerView({
               ))
             ) : (
               <p className="text-sm text-muted-foreground">
-                You have not applied to any roles yet. Visit the jobs page to discover new
-                opportunities.
+                You have not applied to any roles yet. Visit the jobs page to
+                discover new opportunities.
               </p>
             )}
           </div>
@@ -459,7 +512,9 @@ function SeekerView({
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-display text-lg font-semibold">Verification</h3>
+              <h3 className="font-display text-lg font-semibold">
+                Verification
+              </h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Keep your account trusted by completing email verification.
               </p>
@@ -497,16 +552,23 @@ function SeekerView({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-display text-lg font-semibold">Saved jobs</h3>
-              <p className="text-sm text-muted-foreground">Keep roles you want to return to.</p>
+              <p className="text-sm text-muted-foreground">
+                Keep roles you want to return to.
+              </p>
             </div>
             <Badge variant="secondary">{savedJobs?.length ?? 0}</Badge>
           </div>
           <div className="space-y-3">
             {savedJobs?.length ? (
               savedJobs.map((saved) => (
-                <div key={saved.id} className="rounded-xl border border-border p-4">
+                <div
+                  key={saved.id}
+                  className="rounded-xl border border-border p-4"
+                >
                   <p className="font-medium">{saved.jobTitle}</p>
-                  <p className="text-sm text-muted-foreground">{saved.companyName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {saved.companyName}
+                  </p>
                 </div>
               ))
             ) : (
@@ -539,7 +601,10 @@ function EmployerView({ userId }: { userId: string }) {
         <h3 className="font-display font-semibold flex items-center gap-2">
           <Briefcase className="h-4 w-4 text-accent" /> Your job listings
         </h3>
-        <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+        <Button
+          asChild
+          className="bg-accent hover:bg-accent/90 text-accent-foreground"
+        >
           <Link to="/post-job">Post a job</Link>
         </Button>
       </div>
@@ -556,7 +621,8 @@ function EmployerView({ userId }: { userId: string }) {
                   {j.title}
                 </Link>
                 <div className="text-xs text-muted-foreground">
-                  {j.companies?.name} {new Date(j.created_at).toLocaleDateString()}
+                  {j.companies?.name}{" "}
+                  {new Date(j.created_at).toLocaleDateString()}
                 </div>
               </div>
               <Badge variant="outline" className="uppercase text-[10px]">
@@ -565,7 +631,9 @@ function EmployerView({ userId }: { userId: string }) {
             </div>
           ))
         ) : (
-          <div className="p-8 text-center text-sm text-muted-foreground">No jobs posted yet.</div>
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            No jobs posted yet.
+          </div>
         )}
       </Card>
     </div>

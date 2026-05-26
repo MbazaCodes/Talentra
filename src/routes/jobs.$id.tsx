@@ -2,7 +2,15 @@ import * as React from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { MapPin, Clock, Briefcase, Calendar, BadgeCheck, Bookmark, ArrowLeft } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  Briefcase,
+  Calendar,
+  BadgeCheck,
+  Bookmark,
+  ArrowLeft,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -15,7 +23,11 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { SiteHeader, SiteFooter, MobileBottomNav } from "@/components/site-chrome";
+import {
+  SiteHeader,
+  SiteFooter,
+  MobileBottomNav,
+} from "@/components/site-chrome";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatSalary, industryLabel, timeAgo } from "@/lib/kazi-data";
@@ -54,7 +66,9 @@ function JobDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jobs")
-        .select("*,companies(id,name,logo_url,description,location,industry,website,verified)")
+        .select(
+          "*,companies(id,name,logo_url,description,location,industry,website,verified)",
+        )
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
@@ -78,8 +92,11 @@ function JobDetail() {
 
   const handleSave = async () => {
     if (!user) return navigate({ to: "/auth" });
-    const { error } = await supabase.from("saved_jobs").insert({ user_id: user.uid, job_id: id });
-    if (error && !error.message.includes("duplicate")) toast.error(error.message);
+    const { error } = await supabase
+      .from("saved_jobs")
+      .insert({ user_id: user.uid, job_id: id });
+    if (error && !error.message.includes("duplicate"))
+      toast.error(error.message);
     else toast.success("Saved to your list");
   };
 
@@ -93,7 +110,8 @@ function JobDetail() {
     });
     setSubmitting(false);
     if (error) {
-      if (error.message.includes("duplicate")) toast.info("You've already applied to this job");
+      if (error.message.includes("duplicate"))
+        toast.info("You've already applied to this job");
       else toast.error(error.message);
       return;
     }
@@ -177,33 +195,53 @@ function JobDetail() {
                 >
                   {co?.name}
                 </Link>
-                {co?.verified ? <BadgeCheck className="inline h-4 w-4 ml-1 text-accent" /> : null}
+                {co?.verified ? (
+                  <BadgeCheck className="inline h-4 w-4 ml-1 text-accent" />
+                ) : null}
               </p>
             </div>
           </div>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            <Badge variant="secondary" className="bg-cream border border-border">
+            <Badge
+              variant="secondary"
+              className="bg-cream border border-border"
+            >
               <MapPin className="h-3 w-3 mr-1" />
               {job.location}
             </Badge>
-            <Badge variant="secondary" className="bg-cream border border-border">
+            <Badge
+              variant="secondary"
+              className="bg-cream border border-border"
+            >
               <Briefcase className="h-3 w-3 mr-1" />
               {job.contract_type}
             </Badge>
-            <Badge variant="secondary" className="bg-cream border border-border">
+            <Badge
+              variant="secondary"
+              className="bg-cream border border-border"
+            >
               {industryLabel(job.industry)}
             </Badge>
-            <Badge variant="secondary" className="bg-cream border border-border">
+            <Badge
+              variant="secondary"
+              className="bg-cream border border-border"
+            >
               {job.position_level}
             </Badge>
             {job.deadline ? (
-              <Badge variant="secondary" className="bg-cream border border-border">
+              <Badge
+                variant="secondary"
+                className="bg-cream border border-border"
+              >
                 <Calendar className="h-3 w-3 mr-1" />
                 Deadline {new Date(job.deadline).toLocaleDateString()}
               </Badge>
             ) : null}
-            <Badge variant="secondary" className="bg-cream border border-border">
+            <Badge
+              variant="secondary"
+              className="bg-cream border border-border"
+            >
               <Clock className="h-3 w-3 mr-1" />
               {timeAgo(job.created_at)}
             </Badge>
@@ -211,7 +249,9 @@ function JobDetail() {
 
           <div className="mt-6 flex items-center justify-between flex-wrap gap-3 border-t border-border pt-5">
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Salary</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                Salary
+              </p>
               <p className="font-display text-lg font-semibold">
                 {formatSalary(
                   job.salary_min,
@@ -262,7 +302,9 @@ function JobDetail() {
                     </>
                   ) : (
                     <>
-                      <p className="text-sm text-muted-foreground">Sign in to apply to this job.</p>
+                      <p className="text-sm text-muted-foreground">
+                        Sign in to apply to this job.
+                      </p>
                       <DialogFooter>
                         <Button asChild>
                           <Link to="/auth">Sign in</Link>
@@ -283,7 +325,8 @@ function JobDetail() {
             </DialogHeader>
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Choose the issue that best describes why this listing should be reviewed.
+                Choose the issue that best describes why this listing should be
+                reviewed.
               </p>
               <div>
                 <label
@@ -300,11 +343,15 @@ function JobDetail() {
                 >
                   <option value="scam">Scam / fraudulent</option>
                   <option value="fake_salary">Fake salary or pay</option>
-                  <option value="suspicious_company">Suspicious company details</option>
+                  <option value="suspicious_company">
+                    Suspicious company details
+                  </option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground">Details</label>
+                <label className="block text-sm font-medium text-foreground">
+                  Details
+                </label>
                 <Textarea
                   value={reportDetails}
                   onChange={(event) => setReportDetails(event.target.value)}
@@ -320,7 +367,8 @@ function JobDetail() {
                 disabled={reporting || !!existingReport}
                 onClick={async () => {
                   if (!user) return navigate({ to: "/auth" });
-                  if (existingReport) return toast.info("You have already reported this job.");
+                  if (existingReport)
+                    return toast.info("You have already reported this job.");
                   setReporting(true);
                   const { error } = await supabase.from("job_reports").insert({
                     job_id: id,
@@ -332,19 +380,27 @@ function JobDetail() {
                   if (error) {
                     toast.error(error.message);
                   } else {
-                    toast.success("Report submitted. Admin review will follow.");
+                    toast.success(
+                      "Report submitted. Admin review will follow.",
+                    );
                     setReportOpen(false);
                   }
                 }}
               >
-                {reporting ? "Submitting…" : existingReport ? "Already reported" : "Submit report"}
+                {reporting
+                  ? "Submitting…"
+                  : existingReport
+                    ? "Already reported"
+                    : "Submit report"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
         <Card className="p-6 md:p-8 mt-6">
-          <h2 className="font-display text-xl font-semibold mb-3">Job description</h2>
+          <h2 className="font-display text-xl font-semibold mb-3">
+            Job description
+          </h2>
           <div className="prose prose-sm max-w-none whitespace-pre-wrap text-foreground/90">
             {job.description}
           </div>
@@ -352,7 +408,9 @@ function JobDetail() {
 
         {co?.description ? (
           <Card className="p-6 md:p-8 mt-6">
-            <h2 className="font-display text-xl font-semibold mb-3">About {co.name}</h2>
+            <h2 className="font-display text-xl font-semibold mb-3">
+              About {co.name}
+            </h2>
             <p className="text-foreground/80">{co.description}</p>
             <Button asChild variant="outline" className="mt-4">
               <Link to="/companies/$id" params={{ id: co.id }}>

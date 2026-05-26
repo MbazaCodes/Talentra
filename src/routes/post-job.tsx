@@ -111,7 +111,10 @@ const APPLY_METHODS = [
   { value: "internal", label: "Internal Platform" },
 ] as const;
 
-const JOB_TYPE_TO_CONTRACT: Record<(typeof JOB_TYPES)[number]["value"], string> = {
+const JOB_TYPE_TO_CONTRACT: Record<
+  (typeof JOB_TYPES)[number]["value"],
+  string
+> = {
   full_time: "permanent",
   part_time: "contract",
   contract: "contract",
@@ -146,9 +149,13 @@ const schema = z
     jobTitle: z.string().min(3),
     slug: z.string(),
     category: z.string().min(1),
-    jobType: z.enum(JOB_TYPES.map((item) => item.value) as [string, ...string[]]),
+    jobType: z.enum(
+      JOB_TYPES.map((item) => item.value) as [string, ...string[]],
+    ),
     location: z.string().min(2),
-    salaryType: z.enum(SALARY_TYPES.map((item) => item.value) as [string, ...string[]]),
+    salaryType: z.enum(
+      SALARY_TYPES.map((item) => item.value) as [string, ...string[]],
+    ),
     salary: z.string().optional(),
     salaryMin: z.string().optional(),
     salaryMax: z.string().optional(),
@@ -156,10 +163,16 @@ const schema = z
     description: z.string().min(30),
     requirements: z.string().min(20),
     responsibilities: z.string().min(20),
-    experienceLevel: z.enum(EXPERIENCE_LEVELS.map((item) => item.value) as [string, ...string[]]),
-    educationLevel: z.enum(EDUCATION_LEVELS.map((item) => item.value) as [string, ...string[]]),
+    experienceLevel: z.enum(
+      EXPERIENCE_LEVELS.map((item) => item.value) as [string, ...string[]],
+    ),
+    educationLevel: z.enum(
+      EDUCATION_LEVELS.map((item) => item.value) as [string, ...string[]],
+    ),
     deadline: z.string().optional(),
-    applyMethod: z.enum(APPLY_METHODS.map((item) => item.value) as [string, ...string[]]),
+    applyMethod: z.enum(
+      APPLY_METHODS.map((item) => item.value) as [string, ...string[]],
+    ),
     applyEmail: z.string().optional(),
     applyUrl: z.string().optional(),
     featured: z.boolean(),
@@ -268,7 +281,9 @@ const schema = z
 
     if (data.deadline) {
       const selected = new Date(data.deadline + "T00:00:00");
-      if (selected < new Date(today.toISOString().split("T")[0] + "T00:00:00")) {
+      if (
+        selected < new Date(today.toISOString().split("T")[0] + "T00:00:00")
+      ) {
         ctx.addIssue({
           path: ["deadline"],
           code: z.ZodIssueCode.custom,
@@ -340,7 +355,16 @@ function PostJobPage() {
     },
   });
 
-  const { control, register, handleSubmit, watch, setValue, reset, trigger, formState } = form;
+  const {
+    control,
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    trigger,
+    formState,
+  } = form;
   const values = watch();
 
   React.useEffect(() => {
@@ -450,8 +474,12 @@ function PostJobPage() {
       <Card className="mt-4 rounded-3xl border border-border bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
           <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Preview</p>
-            <h3 className="mt-2 text-2xl font-semibold">{data.jobTitle || "Job title preview"}</h3>
+            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
+              Preview
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold">
+              {data.jobTitle || "Job title preview"}
+            </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {data.companyName || selectedCompany?.name || "Employer name"}
             </p>
@@ -480,7 +508,8 @@ function PostJobPage() {
           <div className="rounded-3xl border border-border bg-background p-4">
             <p className="text-sm font-semibold">Why this role matters</p>
             <p className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap">
-              {data.description || "Describe the impact and mission of this role."}
+              {data.description ||
+                "Describe the impact and mission of this role."}
             </p>
           </div>
           <div className="space-y-4">
@@ -493,7 +522,8 @@ function PostJobPage() {
             <div className="rounded-3xl border border-border bg-background p-4">
               <p className="text-sm font-semibold">Responsibilities</p>
               <p className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap">
-                {data.responsibilities || "Explain the core responsibilities of the role."}
+                {data.responsibilities ||
+                  "Explain the core responsibilities of the role."}
               </p>
             </div>
           </div>
@@ -509,14 +539,19 @@ function PostJobPage() {
           <Card className="rounded-4xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent">Section A</p>
-                <h2 className="mt-2 text-2xl font-semibold">Company information</h2>
+                <p className="text-sm uppercase tracking-[0.2em] text-accent">
+                  Section A
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold">
+                  Company information
+                </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Create or choose a polished employer profile for this opening.
                 </p>
               </div>
               <div className="hidden sm:flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <ShieldCheck className="h-4 w-4 text-accent" /> Employer branding first
+                <ShieldCheck className="h-4 w-4 text-accent" /> Employer
+                branding first
               </div>
             </div>
 
@@ -528,7 +563,10 @@ function PostJobPage() {
                   <FormItem className="mt-6">
                     <FormLabel>Employer profile</FormLabel>
                     <FormControl asChild>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select company or create new" />
                         </SelectTrigger>
@@ -538,12 +576,15 @@ function PostJobPage() {
                               {company.name}
                             </SelectItem>
                           ))}
-                          <SelectItem value="new">Create new company</SelectItem>
+                          <SelectItem value="new">
+                            Create new company
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
                     <FormDescription>
-                      Pick an existing company or create a fresh employer profile for this listing.
+                      Pick an existing company or create a fresh employer
+                      profile for this listing.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -600,8 +641,13 @@ function PostJobPage() {
                               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-accent">
                                 <CloudUpload className="h-6 w-6" />
                               </div>
-                              <p className="font-medium text-foreground">Drag & drop or browse</p>
-                              <p>Upload a square logo for a polished company listing.</p>
+                              <p className="font-medium text-foreground">
+                                Drag & drop or browse
+                              </p>
+                              <p>
+                                Upload a square logo for a polished company
+                                listing.
+                              </p>
                             </div>
                           )}
                         </div>
@@ -636,7 +682,10 @@ function PostJobPage() {
                         <FormItem>
                           <FormLabel>Website or company link</FormLabel>
                           <FormControl asChild>
-                            <Input placeholder="https://talentra.co" {...field} />
+                            <Input
+                              placeholder="https://talentra.co"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -652,13 +701,19 @@ function PostJobPage() {
                         <FormItem>
                           <FormLabel>Industry</FormLabel>
                           <FormControl asChild>
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Choose industry" />
                               </SelectTrigger>
                               <SelectContent>
                                 {INDUSTRIES.map((item) => (
-                                  <SelectItem key={item.value} value={item.value}>
+                                  <SelectItem
+                                    key={item.value}
+                                    value={item.value}
+                                  >
                                     {item.en}
                                   </SelectItem>
                                 ))}
@@ -704,7 +759,9 @@ function PostJobPage() {
                       )}
                     </div>
                     <div>
-                      <p className="text-base font-semibold">{selectedCompany.name}</p>
+                      <p className="text-base font-semibold">
+                        {selectedCompany.name}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {selectedCompany.website || "No website set"}
                       </p>
@@ -716,7 +773,9 @@ function PostJobPage() {
                     ) : (
                       <ShieldCheck className="h-4 w-4 text-slate-500" />
                     )}
-                    {selectedCompany.verified ? "Verified employer" : "Profile not verified"}
+                    {selectedCompany.verified
+                      ? "Verified employer"
+                      : "Profile not verified"}
                   </div>
                 </div>
               </Card>
@@ -728,14 +787,17 @@ function PostJobPage() {
           <Card className="rounded-4xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent">Section B</p>
+                <p className="text-sm uppercase tracking-[0.2em] text-accent">
+                  Section B
+                </p>
                 <h2 className="mt-2 text-2xl font-semibold">Job details</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Describe the role clearly so candidates can decide fast.
                 </p>
               </div>
               <div className="hidden sm:flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <Briefcase className="h-4 w-4 text-accent" /> Modern role presentation
+                <Briefcase className="h-4 w-4 text-accent" /> Modern role
+                presentation
               </div>
             </div>
 
@@ -765,7 +827,10 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Job category</FormLabel>
                       <FormControl asChild>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
@@ -822,7 +887,10 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Work location</FormLabel>
                       <FormControl asChild>
-                        <Input placeholder="Dar es Salaam or remote" {...field} />
+                        <Input
+                          placeholder="Dar es Salaam or remote"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -836,7 +904,10 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Salary style</FormLabel>
                       <FormControl asChild>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Choose salary style" />
                           </SelectTrigger>
@@ -867,7 +938,9 @@ function PostJobPage() {
                           inputMode="numeric"
                           placeholder="1200000"
                           {...field}
-                          onChange={(event) => field.onChange(numberOnly(event.target.value))}
+                          onChange={(event) =>
+                            field.onChange(numberOnly(event.target.value))
+                          }
                         />
                       </FormControl>
                       <FormDescription>
@@ -892,7 +965,9 @@ function PostJobPage() {
                             inputMode="numeric"
                             placeholder="500000"
                             {...field}
-                            onChange={(event) => field.onChange(numberOnly(event.target.value))}
+                            onChange={(event) =>
+                              field.onChange(numberOnly(event.target.value))
+                            }
                           />
                         </FormControl>
                         <FormDescription>
@@ -916,7 +991,9 @@ function PostJobPage() {
                             inputMode="numeric"
                             placeholder="1500000"
                             {...field}
-                            onChange={(event) => field.onChange(numberOnly(event.target.value))}
+                            onChange={(event) =>
+                              field.onChange(numberOnly(event.target.value))
+                            }
                           />
                         </FormControl>
                         <FormDescription>
@@ -939,7 +1016,10 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Currency</FormLabel>
                       <FormControl asChild>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Currency" />
                           </SelectTrigger>
@@ -980,13 +1060,19 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Experience level</FormLabel>
                       <FormControl asChild>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select level" />
                           </SelectTrigger>
                           <SelectContent>
                             {EXPERIENCE_LEVELS.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
                                 {option.label}
                               </SelectItem>
                             ))}
@@ -1005,13 +1091,19 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>Education level</FormLabel>
                       <FormControl asChild>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select education" />
                           </SelectTrigger>
                           <SelectContent>
                             {EDUCATION_LEVELS.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
                                 {option.label}
                               </SelectItem>
                             ))}
@@ -1097,14 +1189,19 @@ function PostJobPage() {
           <Card className="rounded-4xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent">Section C</p>
-                <h2 className="mt-2 text-2xl font-semibold">Application method</h2>
+                <p className="text-sm uppercase tracking-[0.2em] text-accent">
+                  Section C
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold">
+                  Application method
+                </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Choose how candidates send applications for this role.
                 </p>
               </div>
               <div className="hidden sm:flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4 text-accent" /> Flexible application flow
+                <Mail className="h-4 w-4 text-accent" /> Flexible application
+                flow
               </div>
             </div>
 
@@ -1159,7 +1256,10 @@ function PostJobPage() {
                     <FormItem>
                       <FormLabel>External application link</FormLabel>
                       <FormControl asChild>
-                        <Input placeholder="https://talentra.co/careers/123" {...field} />
+                        <Input
+                          placeholder="https://talentra.co/careers/123"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1169,8 +1269,8 @@ function PostJobPage() {
                 <FormItem>
                   <FormLabel>Internal platform</FormLabel>
                   <p className="text-sm text-muted-foreground">
-                    Candidates will apply through Talentra and you can review submissions in the
-                    employer dashboard.
+                    Candidates will apply through Talentra and you can review
+                    submissions in the employer dashboard.
                   </p>
                 </FormItem>
               )}
@@ -1182,14 +1282,19 @@ function PostJobPage() {
           <Card className="rounded-4xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent">Section D</p>
-                <h2 className="mt-2 text-2xl font-semibold">Additional options</h2>
+                <p className="text-sm uppercase tracking-[0.2em] text-accent">
+                  Section D
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold">
+                  Additional options
+                </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Boost visibility with optional premium tags.
                 </p>
               </div>
               <div className="hidden sm:flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <Sparkles className="h-4 w-4 text-accent" /> Better candidate reach
+                <Sparkles className="h-4 w-4 text-accent" /> Better candidate
+                reach
               </div>
             </div>
 
@@ -1200,10 +1305,17 @@ function PostJobPage() {
                 render={({ field }) => (
                   <FormItem className="rounded-3xl border border-border p-4 transition hover:border-accent">
                     <div className="flex items-start gap-3">
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                       <div>
-                        <FormLabel className="text-base">Featured job</FormLabel>
-                        <FormDescription>Highlight this role in the Talentra feed.</FormDescription>
+                        <FormLabel className="text-base">
+                          Featured job
+                        </FormLabel>
+                        <FormDescription>
+                          Highlight this role in the Talentra feed.
+                        </FormDescription>
                       </div>
                     </div>
                   </FormItem>
@@ -1216,10 +1328,15 @@ function PostJobPage() {
                 render={({ field }) => (
                   <FormItem className="rounded-3xl border border-border p-4 transition hover:border-accent">
                     <div className="flex items-start gap-3">
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                       <div>
                         <FormLabel className="text-base">Urgent hire</FormLabel>
-                        <FormDescription>Mark this role as a priority opening.</FormDescription>
+                        <FormDescription>
+                          Mark this role as a priority opening.
+                        </FormDescription>
                       </div>
                     </div>
                   </FormItem>
@@ -1232,10 +1349,17 @@ function PostJobPage() {
                 render={({ field }) => (
                   <FormItem className="rounded-3xl border border-border p-4 transition hover:border-accent">
                     <div className="flex items-start gap-3">
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                       <div>
-                        <FormLabel className="text-base">Remote friendly</FormLabel>
-                        <FormDescription>Appeal to remote-first candidates.</FormDescription>
+                        <FormLabel className="text-base">
+                          Remote friendly
+                        </FormLabel>
+                        <FormDescription>
+                          Appeal to remote-first candidates.
+                        </FormDescription>
                       </div>
                     </div>
                   </FormItem>
@@ -1263,7 +1387,8 @@ function PostJobPage() {
                 renderPreview(values)
               ) : (
                 <p className="mt-4 text-sm text-muted-foreground">
-                  Tap the button to preview how your listing will appear to candidates.
+                  Tap the button to preview how your listing will appear to
+                  candidates.
                 </p>
               )}
             </div>
@@ -1281,7 +1406,8 @@ function PostJobPage() {
       return;
     }
 
-    let selectedCompanyId = data.companyId === "new" ? undefined : data.companyId;
+    let selectedCompanyId =
+      data.companyId === "new" ? undefined : data.companyId;
     if (data.companyId === "new") {
       const { data: companyData, error: companyError } = await supabase
         .from("companies")
@@ -1302,7 +1428,9 @@ function PostJobPage() {
       }
       selectedCompanyId = companyData.id;
       if (!roles.includes("employer")) {
-        await supabase.from("user_roles").insert({ user_id: user.id, role: "employer" });
+        await supabase
+          .from("user_roles")
+          .insert({ user_id: user.id, role: "employer" });
       }
     }
 
@@ -1312,9 +1440,13 @@ function PostJobPage() {
     }
 
     const salaryMin =
-      data.salaryType === "exact" ? Number(salaryValue || 0) : Number(salaryMinValue || 0);
+      data.salaryType === "exact"
+        ? Number(salaryValue || 0)
+        : Number(salaryMinValue || 0);
     const salaryMax =
-      data.salaryType === "exact" ? Number(salaryValue || 0) : Number(salaryMaxValue || 0);
+      data.salaryType === "exact"
+        ? Number(salaryValue || 0)
+        : Number(salaryMaxValue || 0);
     const details = [
       data.description.trim(),
       "\n\nRequirements:\n" + data.requirements.trim(),
@@ -1323,9 +1455,12 @@ function PostJobPage() {
 
     const jobPayload = {
       companyName:
-        data.companyId === "new" ? (data.companyName?.trim() ?? "") : (selectedCompany?.name ?? ""),
+        data.companyId === "new"
+          ? (data.companyName?.trim() ?? "")
+          : (selectedCompany?.name ?? ""),
       companyLogo: data.companyLogo || selectedCompany?.logo_url || "",
-      companyWebsite: data.companyWebsite?.trim() || selectedCompany?.website || "",
+      companyWebsite:
+        data.companyWebsite?.trim() || selectedCompany?.website || "",
       industry: data.industry || selectedCompany?.industry || "",
       jobTitle: data.jobTitle.trim(),
       category: data.category,
@@ -1404,7 +1539,9 @@ function PostJobPage() {
   const totalPublished =
     companies?.reduce(
       (sum, company) =>
-        sum + (company?.jobs?.filter((job) => job.status === "published").length ?? 0),
+        sum +
+        (company?.jobs?.filter((job) => job.status === "published").length ??
+          0),
       0,
     ) ?? 0;
   const limitReached = !hasPremium && totalPublished >= 10;
@@ -1426,8 +1563,8 @@ function PostJobPage() {
                   Post a premium job listing
                 </h1>
                 <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-                  A smoother employer workflow optimized for mobile candidates across Tanzania and
-                  Africa.
+                  A smoother employer workflow optimized for mobile candidates
+                  across Tanzania and Africa.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -1435,27 +1572,37 @@ function PostJobPage() {
                   <Link to="/dashboard">Employer dashboard</Link>
                 </Button>
                 <span className="rounded-full bg-slate-100 px-3 py-2 text-xs uppercase tracking-[0.2em] text-slate-600">
-                  Draft {draftSavedAt ? `saved at ${draftSavedAt}` : "available"}
+                  Draft{" "}
+                  {draftSavedAt ? `saved at ${draftSavedAt}` : "available"}
                 </span>
               </div>
             </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-4">
               {stepLabels.map((label, index) => (
-                <div key={label} className="rounded-2xl bg-slate-100 p-3 text-center">
+                <div
+                  key={label}
+                  className="rounded-2xl bg-slate-100 p-3 text-center"
+                >
                   <div
                     className={`mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${step === index + 1 ? "bg-accent text-white" : "bg-white text-slate-500"}`}
                   >
                     {index + 1}
                   </div>
-                  <p className="text-xs uppercase tracking-[0.25em] text-slate-500">{label}</p>
+                  <p className="text-xs uppercase tracking-[0.25em] text-slate-500">
+                    {label}
+                  </p>
                 </div>
               ))}
             </div>
           </section>
 
           <Form {...form}>
-            <form id="job-post-form" onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <form
+              id="job-post-form"
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-8"
+            >
               {renderStep()}
 
               <div className="flex flex-col gap-3 rounded-3xl border border-border bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
@@ -1468,7 +1615,12 @@ function PostJobPage() {
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {step > 1 ? (
-                    <Button type="button" variant="outline" onClick={goBack} className="min-w-35">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={goBack}
+                      className="min-w-35"
+                    >
                       <ArrowLeft className="h-4 w-4" /> Back
                     </Button>
                   ) : null}

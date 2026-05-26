@@ -18,7 +18,11 @@ export type JobCardData = {
   created_at: string;
   deadline?: string | null;
   featured?: boolean;
-  companies?: { name: string; logo_url?: string | null; verified?: boolean | null } | null;
+  companies?: {
+    name: string;
+    logo_url?: string | null;
+    verified?: boolean | null;
+  } | null;
 };
 
 export function JobCard({ job }: { job: JobCardData }) {
@@ -88,7 +92,9 @@ export function JobCard({ job }: { job: JobCardData }) {
                 {industryLabel(job.industry)}
               </Badge>
               {job.featured ? (
-                <Badge className="bg-accent text-accent-foreground">Featured</Badge>
+                <Badge className="bg-accent text-accent-foreground">
+                  Featured
+                </Badge>
               ) : null}
             </div>
 

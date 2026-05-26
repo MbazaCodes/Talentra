@@ -12,9 +12,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
-import { SiteHeader, SiteFooter, MobileBottomNav } from "@/components/site-chrome";
-import { JobCard, JobCardSkeleton, type JobCardData } from "@/components/job-card";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+  SheetHeader,
+} from "@/components/ui/sheet";
+import {
+  SiteHeader,
+  SiteFooter,
+  MobileBottomNav,
+} from "@/components/site-chrome";
+import {
+  JobCard,
+  JobCardSkeleton,
+  type JobCardData,
+} from "@/components/job-card";
 import { supabase } from "@/integrations/supabase/client";
 import {
   REGIONS,
@@ -42,7 +56,8 @@ export const Route = createFileRoute("/jobs")({
     industry: typeof s.industry === "string" ? s.industry : undefined,
     level: typeof s.level === "string" ? s.level : undefined,
     contract: typeof s.contract === "string" ? s.contract : undefined,
-    qualification: typeof s.qualification === "string" ? s.qualification : undefined,
+    qualification:
+      typeof s.qualification === "string" ? s.qualification : undefined,
     salary: typeof s.salary === "string" ? s.salary : undefined,
   }),
   component: JobsPage,
@@ -73,9 +88,12 @@ function JobsPage() {
       if (search.q) query = query.ilike("title", `%${search.q}%`);
       if (search.region) query = query.eq("region", search.region);
       if (search.industry) query = query.eq("industry", search.industry);
-      if (search.level) query = query.eq("position_level", search.level as never);
-      if (search.contract) query = query.eq("contract_type", search.contract as never);
-      if (search.qualification) query = query.eq("qualification", search.qualification as never);
+      if (search.level)
+        query = query.eq("position_level", search.level as never);
+      if (search.contract)
+        query = query.eq("contract_type", search.contract as never);
+      if (search.qualification)
+        query = query.eq("qualification", search.qualification as never);
       if (search.salary) {
         const band = SALARY_BANDS.find((b) => b.value === search.salary);
         if (band?.min) query = query.gte("salary_min", band.min);
@@ -96,10 +114,14 @@ function JobsPage() {
   const filters = (
     <div className="space-y-5">
       <div>
-        <Label className="text-xs uppercase tracking-wide text-muted-foreground">Region</Label>
+        <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+          Region
+        </Label>
         <Select
           value={search.region ?? "_all"}
-          onValueChange={(v) => update({ region: v === "_all" ? undefined : v })}
+          onValueChange={(v) =>
+            update({ region: v === "_all" ? undefined : v })
+          }
         >
           <SelectTrigger className="mt-1">
             <SelectValue placeholder="Any region" />
@@ -115,10 +137,14 @@ function JobsPage() {
         </Select>
       </div>
       <div>
-        <Label className="text-xs uppercase tracking-wide text-muted-foreground">Industry</Label>
+        <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+          Industry
+        </Label>
         <Select
           value={search.industry ?? "_all"}
-          onValueChange={(v) => update({ industry: v === "_all" ? undefined : v })}
+          onValueChange={(v) =>
+            update({ industry: v === "_all" ? undefined : v })
+          }
         >
           <SelectTrigger className="mt-1">
             <SelectValue placeholder="Any industry" />
@@ -160,7 +186,9 @@ function JobsPage() {
         </Label>
         <Select
           value={search.contract ?? "_all"}
-          onValueChange={(v) => update({ contract: v === "_all" ? undefined : v })}
+          onValueChange={(v) =>
+            update({ contract: v === "_all" ? undefined : v })
+          }
         >
           <SelectTrigger className="mt-1">
             <SelectValue placeholder="Any contract" />
@@ -181,7 +209,9 @@ function JobsPage() {
         </Label>
         <Select
           value={search.qualification ?? "_all"}
-          onValueChange={(v) => update({ qualification: v === "_all" ? undefined : v })}
+          onValueChange={(v) =>
+            update({ qualification: v === "_all" ? undefined : v })
+          }
         >
           <SelectTrigger className="mt-1">
             <SelectValue placeholder="Any qualification" />
@@ -197,7 +227,9 @@ function JobsPage() {
         </Select>
       </div>
       <div>
-        <Label className="text-xs uppercase tracking-wide text-muted-foreground">Salary</Label>
+        <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+          Salary
+        </Label>
         <Select
           value={search.salary ?? "any"}
           onValueChange={(v) => update({ salary: v === "any" ? undefined : v })}
@@ -228,7 +260,9 @@ function JobsPage() {
 
       <div className="bg-cream/60 border-b border-border">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="font-display text-2xl md:text-3xl font-semibold">Find your next role</h1>
+          <h1 className="font-display text-2xl md:text-3xl font-semibold">
+            Find your next role
+          </h1>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -245,7 +279,10 @@ function JobsPage() {
                 className="pl-9 bg-background"
               />
             </div>
-            <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Button
+              type="submit"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
               Search
             </Button>
             <Sheet>
@@ -279,12 +316,16 @@ function JobsPage() {
           </p>
           <div className="grid gap-4">
             {isLoading ? (
-              Array.from({ length: 6 }).map((_, i) => <JobCardSkeleton key={i} />)
+              Array.from({ length: 6 }).map((_, i) => (
+                <JobCardSkeleton key={i} />
+              ))
             ) : data && data.length > 0 ? (
               data.map((j) => <JobCard key={j.id} job={j} />)
             ) : (
               <div className="rounded-xl border border-dashed border-border p-10 text-center">
-                <p className="font-display text-lg font-semibold">No jobs match your filters</p>
+                <p className="font-display text-lg font-semibold">
+                  No jobs match your filters
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   Try clearing some filters, or be the first to post a job.
                 </p>

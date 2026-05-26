@@ -108,7 +108,9 @@ function AuthPage() {
 
       setTab("login");
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to create account");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create account",
+      );
     } finally {
       setLoading(false);
     }
@@ -138,22 +140,47 @@ function AuthPage() {
         </div>
 
         {tab === "login" ? (
-          <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
-            <Input placeholder="Email" type="email" {...loginForm.register("email")} />
+          <form
+            onSubmit={loginForm.handleSubmit(onLogin)}
+            className="space-y-4"
+          >
+            <Input
+              placeholder="Email"
+              type="email"
+              {...loginForm.register("email")}
+            />
 
-            <Input placeholder="Password" type="password" {...loginForm.register("password")} />
+            <Input
+              placeholder="Password"
+              type="password"
+              {...loginForm.register("password")}
+            />
 
             <Button type="submit" disabled={loading} className="w-full">
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         ) : (
-          <form onSubmit={signupForm.handleSubmit(onSignup)} className="space-y-4">
-            <Input placeholder="Full Name" {...signupForm.register("fullName")} />
+          <form
+            onSubmit={signupForm.handleSubmit(onSignup)}
+            className="space-y-4"
+          >
+            <Input
+              placeholder="Full Name"
+              {...signupForm.register("fullName")}
+            />
 
-            <Input placeholder="Email" type="email" {...signupForm.register("email")} />
+            <Input
+              placeholder="Email"
+              type="email"
+              {...signupForm.register("email")}
+            />
 
-            <Input placeholder="Password" type="password" {...signupForm.register("password")} />
+            <Input
+              placeholder="Password"
+              type="password"
+              {...signupForm.register("password")}
+            />
 
             <Input
               placeholder="Confirm Password"
