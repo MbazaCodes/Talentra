@@ -160,8 +160,12 @@ export function EmployeeProfile() {
   });
 
   const handleRegister = async () => {
-    if (!selectedCompany || !jobTitle.trim()) {
-      toast.error('Select a company and enter your job title');
+    if (!selectedCompany) {
+      toast.error('Please search and select a company first');
+      return;
+    }
+    if (!jobTitle.trim()) {
+      toast.error('Please enter your job title at this company');
       return;
     }
     setRegistering(true);

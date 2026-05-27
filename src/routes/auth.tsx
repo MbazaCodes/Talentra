@@ -27,6 +27,7 @@ const signupSchema = z
     email: z.string().email('Invalid email'),
     password: z.string().min(8, 'Minimum 8 characters'),
     confirmPassword: z.string(),
+    phone: z.string().optional(),
     role: z.enum(['job_seeker', 'employer', 'employee']),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -76,6 +77,7 @@ function AuthPage() {
       email: '',
       password: '',
       confirmPassword: '',
+      phone: '',
       role: 'job_seeker',
     },
   });
@@ -107,12 +109,24 @@ function AuthPage() {
           data: {
             full_name: data.fullName,
             role: data.role,
+            phone: data.phone || null,
           },
         },
       });
       if (error) throw error;
-      toast.success('Account created! Check your email to verify your address.');
-      setTab('login');
+      // Attempt auto sign-in so user doesn't need to re-enter credentials
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+      if (signInError) {
+        // Email confirmation may be required — send to login
+        toast.success('Account created! Check your email to confirm, then sign in.');
+        setTab('login');
+      } else {
+        toast.success('Welcome to Talentra!');
+        navigate({ to: '/dashboard' });
+      }
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Failed to create account');
     } finally {
@@ -248,6 +262,19 @@ function AuthPage() {
                     {...signupForm.register('confirmPassword')}
                   />
                   <FieldError message={signupForm.formState.errors.confirmPassword?.message} />
+                </div>
+                <div>
+                  <Label htmlFor="signup-phone">
+                    Phone <span className="text-muted-foreground text-xs">(optional)</span>
+                  </Label>
+                  <Input
+                    id="signup-phone"
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="+255 7XX XXX XXX"
+                    className="mt-1"
+                    {...signupForm.register('phone')}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="signup-role">I am a…</Label>

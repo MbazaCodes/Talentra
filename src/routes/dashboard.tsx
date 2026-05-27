@@ -182,9 +182,14 @@ function ProfileForm({
   profile: SeekerProfile | null;
   onSave: () => void;
 }) {
-  const [fullName, setFullName] = React.useState(profile?.full_name ?? '');
+  // Seed from auth metadata if profile fields are empty (first login after signup)
+  const metaName = (user.user_metadata as Record<string, string> | undefined)?.full_name ?? '';
+  const metaPhone = (user.user_metadata as Record<string, string> | undefined)?.phone ?? '';
+
+  const [fullName, setFullName] = React.useState(profile?.full_name || metaName || '');
   const [headline, setHeadline] = React.useState(profile?.headline ?? '');
   const [location, setLocation] = React.useState(profile?.location ?? '');
+  const [phone, setPhone] = React.useState(profile?.phone || metaPhone || '');
   const [bio, setBio] = React.useState(profile?.bio ?? '');
   const [portfolioUrl, setPortfolioUrl] = React.useState(profile?.portfolioUrl ?? '');
   const [skillInput, setSkillInput] = React.useState('');
@@ -192,6 +197,18 @@ function ProfileForm({
   const [experience, setExperience] = React.useState((profile?.experience ?? []).join('\n'));
   const [education, setEducation] = React.useState((profile?.education ?? []).join('\n'));
   const [busy, setBusy] = React.useState(false);
+
+  // Re-sync when profile loads (async)
+  React.useEffect(() => {
+    if (!profile) return;
+    if (profile.full_name) setFullName(profile.full_name);
+    if (profile.phone) setPhone(profile.phone);
+    if (profile.headline) setHeadline(profile.headline);
+    if (profile.location) setLocation(profile.location);
+    if (profile.bio) setBio(profile.bio);
+    if (profile.portfolioUrl) setPortfolioUrl(profile.portfolioUrl);
+    if (profile.skills?.length) setSkills(profile.skills);
+  }, [profile]);
 
   const profileCompletion = React.useMemo(() => {
     const completed = [
@@ -224,6 +241,7 @@ function ProfileForm({
         headline,
         bio,
         location,
+        phone,
         portfolioUrl,
         skills,
         experience: experience

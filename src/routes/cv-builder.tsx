@@ -399,7 +399,7 @@ export default function CVBuilderPage() {
           .references_list ?? [],
       languages: (profile as never as { languages?: z.infer<typeof langSchema>[] }).languages ?? [],
     });
-  }, [profile, reset]);
+  }, [profile, user, reset]);
 
   const workFields = useFieldArray({ control, name: 'work_experience' });
   const eduFields = useFieldArray({ control, name: 'education_items' });

@@ -33,6 +33,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { useAuth } from '@/lib/auth';
 import { INDUSTRIES, REGIONS } from '@/lib/kazi-data';
+import { getUserProfile } from '@/lib/supabase-data';
 import {
   Form,
   FormField,
@@ -405,6 +406,24 @@ function PostJobPage() {
     [companies, values.companyId],
   );
 
+  // Fetch employer profile for pre-filling new company fields
+  const { data: employerProfile } = useQuery({
+    queryKey: ['supabase-profile', user?.id],
+    enabled: !!user?.id,
+    queryFn: () => getUserProfile(user!.id),
+  });
+
+  // Pre-fill new company fields from profile when switching to 'new'
+  React.useEffect(() => {
+    if (values.companyId !== 'new' || !employerProfile) return;
+    if (!values.companyName && employerProfile.full_name) {
+      // Don't auto-fill company name from personal name — employer should enter it
+    }
+    if (!values.companyLocation && employerProfile.location) {
+      setValue('companyLocation', employerProfile.location);
+    }
+  }, [values.companyId, employerProfile, values.companyName, values.companyLocation, setValue]);
+
   const isNewCompany = values.companyId === 'new';
   const salaryValue = numberOnly(values.salary || '');
   const salaryMinValue = numberOnly(values.salaryMin || '');
@@ -413,9 +432,20 @@ function PostJobPage() {
 
   const stepLabels = ['Company', 'Job details', 'Applications', 'Extras'];
 
+  const STEP_FIELDS: Record<number, Parameters<typeof trigger>[0]> = {
+    1: ['companyId', 'companyName', 'companyWebsite', 'industry', 'companyLocation'],
+    2: ['jobTitle', 'category', 'jobType', 'location', 'description'],
+    3: ['applyMethod', 'applyEmail', 'applyUrl'],
+    4: [],
+  };
+
   const goNext = async () => {
-    const success = await trigger();
-    if (!success) return;
+    const fields = STEP_FIELDS[step] ?? [];
+    const success = fields.length > 0 ? await trigger(fields) : true;
+    if (!success) {
+      toast.error('Please fill in all required fields before continuing.');
+      return;
+    }
     setStep((current) => Math.min(current + 1, 4));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

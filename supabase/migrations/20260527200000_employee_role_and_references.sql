@@ -305,13 +305,21 @@ declare
   _requested_role text;
   _safe_role      public.app_role;
 begin
-  insert into public.profiles (id, full_name, avatar_url)
+  insert into public.profiles (id, full_name, avatar_url, phone)
   values (
     new.id,
     coalesce(nullif(trim(new.raw_user_meta_data->>'full_name'), ''), split_part(new.email, '@', 1)),
-    new.raw_user_meta_data->>'avatar_url'
+    new.raw_user_meta_data->>'avatar_url',
+    nullif(trim(new.raw_user_meta_data->>'phone'), '')
   )
-  on conflict (id) do nothing;
+  on conflict (id) do update set
+    full_name = coalesce(
+      nullif(trim(excluded.full_name), ''),
+      profiles.full_name,
+      split_part(new.email, '@', 1)
+    ),
+    phone = coalesce(excluded.phone, profiles.phone),
+    updated_at = now();
 
   _requested_role := lower(trim(new.raw_user_meta_data->>'role'));
   _safe_role := case
