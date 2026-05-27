@@ -28,6 +28,11 @@ function JobDetail() {
   const navigate = useNavigate();
   const [coverLetter, setCoverLetter] = React.useState('');
   const [reportOpen, setReportOpen] = React.useState(false);
+
+  // Increment view count once per mount (fire-and-forget)
+  React.useEffect(() => {
+    supabase.rpc('increment_job_views' as never, { job_id: id } as never).then(() => {});
+  }, [id]);
   const [reportReason, setReportReason] = React.useState('scam');
   const [reportDetails, setReportDetails] = React.useState('');
   const [submitting, setSubmitting] = React.useState(false);
@@ -35,14 +40,14 @@ function JobDetail() {
   const [open, setOpen] = React.useState(false);
 
   const { data: existingReport } = useQuery({
-    queryKey: ['job-report', id, user?.uid],
-    enabled: !!user?.uid,
+    queryKey: ['job-report', id, user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('job_reports')
         .select('id')
         .eq('job_id', id)
-        .eq('reporter_id', user!.uid)
+        .eq('reporter_id', user!.id)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -63,14 +68,14 @@ function JobDetail() {
   });
 
   const { data: hasApplied } = useQuery({
-    queryKey: ['application', id, user?.uid],
-    enabled: !!user?.uid,
+    queryKey: ['application', id, user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data } = await supabase
         .from('applications')
         .select('id')
         .eq('job_id', id)
-        .eq('applicant_id', user!.uid)
+        .eq('applicant_id', user!.id)
         .maybeSingle();
       return !!data;
     },
@@ -78,7 +83,7 @@ function JobDetail() {
 
   const handleSave = async () => {
     if (!user) return navigate({ to: '/auth' });
-    const { error } = await supabase.from('saved_jobs').insert({ user_id: user.uid, job_id: id });
+    const { error } = await supabase.from('saved_jobs').insert({ user_id: user.id, job_id: id });
     if (error && !error.message.includes('duplicate')) toast.error(error.message);
     else toast.success('Saved to your list');
   };
@@ -88,7 +93,7 @@ function JobDetail() {
     setSubmitting(true);
     const { error } = await supabase.from('applications').insert({
       job_id: id,
-      applicant_id: user.uid,
+      applicant_id: user.id,
       cover_letter: coverLetter || null,
     });
     setSubmitting(false);
@@ -324,7 +329,7 @@ function JobDetail() {
                   setReporting(true);
                   const { error } = await supabase.from('job_reports').insert({
                     job_id: id,
-                    reporter_id: user.uid,
+                    reporter_id: user.id,
                     reason: reportReason,
                     details: reportDetails || null,
                   });

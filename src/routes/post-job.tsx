@@ -376,9 +376,15 @@ function PostJobPage() {
 
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
-      const draft = { ...values, updatedAt: new Date().toISOString() };
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-      setDraftSavedAt(new Date().toLocaleTimeString());
+      // Strip the base64 logo from draft to avoid bloating localStorage
+      const { companyLogo: _logo, ...draftWithoutLogo } = values;
+      const draft = { ...draftWithoutLogo, updatedAt: new Date().toISOString() };
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        setDraftSavedAt(new Date().toLocaleTimeString());
+      } catch {
+        // localStorage quota exceeded — silently skip
+      }
     }, 650);
     return () => window.clearTimeout(timer);
   }, [values]);
@@ -419,6 +425,12 @@ function PostJobPage() {
   const handleLogoUpload = (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast.error('Please upload a valid image file.');
+      return;
+    }
+
+    // Limit to 2 MB to avoid bloating localStorage draft
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Logo must be under 2 MB. Please resize and try again.');
       return;
     }
 

@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
 export type Role = 'job_seeker' | 'employer' | 'admin';
 
@@ -40,15 +41,50 @@ export interface SavedJobRecord {
   created_at: string;
 }
 
-export async function getUserProfile(uid: string) {
+type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+
+export async function getUserProfile(uid: string): Promise<SeekerProfile | null> {
   const { data, error } = await supabase.from('profiles').select('*').eq('id', uid).single();
 
   if (error || !data) return null;
-  return data as SeekerProfile;
+
+  const row = data as ProfileRow & {
+    skills?: string[];
+    experience?: string[];
+    education?: string[];
+    resume_url?: string;
+    portfolio_url?: string;
+    verified?: boolean;
+  };
+
+  return {
+    id: row.id,
+    full_name: row.full_name,
+    headline: row.headline,
+    bio: row.bio,
+    location: row.location,
+    phone: row.phone,
+    skills: row.skills ?? [],
+    experience: row.experience ?? [],
+    education: row.education ?? [],
+    resumeUrl: row.resume_url ?? undefined,
+    portfolioUrl: row.portfolio_url ?? undefined,
+    verified: row.verified ?? false,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
 }
 
 export async function saveUserProfile(uid: string, profile: Partial<SeekerProfile>) {
-  const updateData: unknown = {
+  type ProfileUpdate = Database['public']['Tables']['profiles']['Update'] & {
+    skills?: string[];
+    experience?: string[];
+    education?: string[];
+    portfolio_url?: string;
+    resume_url?: string;
+  };
+
+  const updateData: ProfileUpdate = {
     updated_at: new Date().toISOString(),
   };
 
@@ -57,8 +93,16 @@ export async function saveUserProfile(uid: string, profile: Partial<SeekerProfil
   if (profile.bio !== undefined) updateData.bio = profile.bio;
   if (profile.location !== undefined) updateData.location = profile.location;
   if (profile.phone !== undefined) updateData.phone = profile.phone;
+  if (profile.skills !== undefined) updateData.skills = profile.skills;
+  if (profile.experience !== undefined) updateData.experience = profile.experience;
+  if (profile.education !== undefined) updateData.education = profile.education;
+  if (profile.portfolioUrl !== undefined) updateData.portfolio_url = profile.portfolioUrl;
+  if (profile.resumeUrl !== undefined) updateData.resume_url = profile.resumeUrl;
 
-  const { error } = await supabase.from('profiles').update(updateData).eq('id', uid);
+  const { error } = await supabase
+    .from('profiles')
+    .update(updateData as never)
+    .eq('id', uid);
 
   if (error) throw error;
 }
@@ -81,7 +125,21 @@ export async function uploadResumeFile(uid: string, file: File) {
   return publicUrl;
 }
 
-export async function fetchUserApplications(uid: string) {
+interface ApplicationRow {
+  id: string;
+  applicant_id: string;
+  job_id: string;
+  status: string;
+  created_at: string;
+  jobs?: {
+    title?: string;
+    companies?: {
+      name?: string;
+    } | null;
+  } | null;
+}
+
+export async function fetchUserApplications(uid: string): Promise<ApplicationRecord[]> {
   const { data, error } = await supabase
     .from('applications')
     .select(
@@ -107,18 +165,31 @@ export async function fetchUserApplications(uid: string) {
     return [];
   }
 
-  return data.map((item: unknown) => ({
+  return (data as ApplicationRow[]).map((item) => ({
     id: item.id,
     applicant_id: item.applicant_id,
     job_id: item.job_id,
-    jobTitle: item.jobs?.title || '',
-    companyName: item.jobs?.companies?.name || '',
+    jobTitle: item.jobs?.title ?? '',
+    companyName: item.jobs?.companies?.name ?? '',
     status: item.status,
     created_at: item.created_at,
-  })) as ApplicationRecord[];
+  }));
 }
 
-export async function fetchSavedJobs(uid: string) {
+interface SavedJobRow {
+  id: string;
+  user_id: string;
+  job_id: string;
+  created_at: string;
+  jobs?: {
+    title?: string;
+    companies?: {
+      name?: string;
+    } | null;
+  } | null;
+}
+
+export async function fetchSavedJobs(uid: string): Promise<SavedJobRecord[]> {
   const { data, error } = await supabase
     .from('saved_jobs')
     .select(
@@ -143,14 +214,14 @@ export async function fetchSavedJobs(uid: string) {
     return [];
   }
 
-  return data.map((item: unknown) => ({
+  return (data as SavedJobRow[]).map((item) => ({
     id: item.id,
     user_id: item.user_id,
     job_id: item.job_id,
-    jobTitle: item.jobs?.title || '',
-    companyName: item.jobs?.companies?.name || '',
+    jobTitle: item.jobs?.title ?? '',
+    companyName: item.jobs?.companies?.name ?? '',
     created_at: item.created_at,
-  })) as SavedJobRecord[];
+  }));
 }
 
 export async function ensureUserDocument(uid: string, email: string, role: Role, fullName: string) {
@@ -183,4 +254,6 @@ export async function ensureUserDocument(uid: string, email: string, role: Role,
       role: role,
     });
   }
+
+  void email; // used for type completeness
 }

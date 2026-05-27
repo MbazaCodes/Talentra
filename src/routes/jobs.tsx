@@ -70,7 +70,12 @@ function JobsPage() {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (search.q) query = query.ilike('title', `%${search.q}%`);
+      if (search.q) {
+        // Search title and location with ilike for broad matching
+        query = query.or(
+          `title.ilike.%${search.q}%,location.ilike.%${search.q}%,industry.ilike.%${search.q}%`,
+        );
+      }
       if (search.region) query = query.eq('region', search.region);
       if (search.industry) query = query.eq('industry', search.industry);
       if (search.level) query = query.eq('position_level', search.level as never);
