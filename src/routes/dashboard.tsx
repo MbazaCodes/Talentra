@@ -24,6 +24,7 @@ import {
   SeekerProfile,
 } from '@/lib/supabase-data';
 import { EmployeeProfile } from '@/components/employee-profile';
+import { EmployerBadge } from '@/components/employer-badge';
 
 export const Route = createFileRoute('/dashboard')({ component: Dashboard });
 
@@ -99,13 +100,18 @@ function Dashboard() {
             <h1 className="font-display text-3xl font-semibold">Dashboard</h1>
             <p className="text-muted-foreground mt-1 truncate">{user.email}</p>
           </div>
-          <Badge variant="secondary">
-            {roles.includes('job_seeker')
-              ? 'Job seeker'
-              : roles.includes('employer')
-                ? 'Employer'
-                : 'Member'}
-          </Badge>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="secondary">
+              {roles.includes('job_seeker')
+                ? 'Job seeker'
+                : roles.includes('employer')
+                  ? 'Employer'
+                  : roles.includes('employee')
+                    ? 'Employee'
+                    : 'Member'}
+            </Badge>
+            <EmployerBadge userId={user.id} size="sm" />
+          </div>
         </div>
         {suggestions.length > 0 && (
           <Alert className="mt-6">
@@ -606,6 +612,54 @@ function SeekerView({
 }
 
 function EmployerView({ userId }: { userId: string }) {
+  const queryClient = useQueryClient();
+
+  const { data: pendingEmployees } = useQuery({
+    queryKey: ['pending-employees', userId],
+    queryFn: async () => {
+      // Get companies owned by this user, then their pending employees
+      const { data: companies } = await supabase
+        .from('companies')
+        .select('id,name,logo_url')
+        .eq('owner_id', userId);
+      if (!companies?.length) return [];
+
+      const companyIds = companies.map((c: { id: string }) => c.id);
+      const { data } = await (supabase as any)
+        .from('company_employees')
+        .select(
+          'id,user_id,job_title,department,verified,company_id,profiles!user_id(full_name,headline)',
+        )
+        .in('company_id', companyIds)
+        .order('verified', { ascending: true });
+
+      return (data ?? []).map(
+        (e: {
+          id: string;
+          user_id: string;
+          job_title: string;
+          department: string | null;
+          verified: boolean;
+          company_id: string;
+          profiles: { full_name: string | null; headline: string | null } | null;
+        }) => ({
+          ...e,
+          companyName:
+            companies.find((c: { id: string; name: string }) => c.id === e.company_id)?.name ?? '',
+        }),
+      );
+    },
+  });
+
+  const handleVerifyEmployee = async (employeeId: string, verify: boolean) => {
+    await (supabase as any)
+      .from('company_employees')
+      .update({ verified: verify })
+      .eq('id', employeeId);
+    toast.success(verify ? 'Employee verified — badge awarded!' : 'Verification removed');
+    queryClient.invalidateQueries({ queryKey: ['pending-employees', userId] });
+  };
+
   const { data: jobs } = useQuery({
     queryKey: ['my-jobs', userId],
     queryFn: async () => {
@@ -619,6 +673,69 @@ function EmployerView({ userId }: { userId: string }) {
   });
   return (
     <div className="mt-4 space-y-4">
+      {(pendingEmployees?.length ?? 0) > 0 && (
+        <Card className="p-5">
+          <h3 className="font-display font-semibold mb-4 flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-accent" /> Employee verification
+          </h3>
+          <div className="space-y-3">
+            {pendingEmployees!.map(
+              (emp: {
+                id: string;
+                user_id: string;
+                job_title: string;
+                department: string | null;
+                verified: boolean;
+                company_id: string;
+                companyName: string;
+                profiles: { full_name: string | null; headline: string | null } | null;
+              }) => (
+                <div
+                  key={emp.id}
+                  className="flex items-center justify-between rounded-xl border border-border p-3 gap-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm">{emp.profiles?.full_name ?? 'User'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {emp.job_title}
+                      {emp.department ? ` · ${emp.department}` : ''} at {emp.companyName}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {emp.verified ? (
+                      <>
+                        <Badge className="bg-emerald-100 text-emerald-800 text-xs">Verified</Badge>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={() => handleVerifyEmployee(emp.id, false)}
+                        >
+                          Revoke
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Badge variant="secondary" className="text-xs">
+                          Pending
+                        </Badge>
+                        <Button
+                          size="sm"
+                          className="h-7 text-xs bg-accent hover:bg-accent/90 text-accent-foreground"
+                          onClick={() => handleVerifyEmployee(emp.id, true)}
+                        >
+                          <CheckCircle2 className="h-3 w-3 mr-1" /> Verify
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between">
         <h3 className="font-display font-semibold flex items-center gap-2">
           <Briefcase className="h-4 w-4 text-accent" /> Your job listings
