@@ -94,7 +94,7 @@ function JobsPage() {
   });
 
   const update = (patch: Partial<JobsSearch>) =>
-    navigate({ search: (prev) => ({ ...prev, ...patch }) });
+    navigate({ search: (prev: JobsSearch) => ({ ...prev, ...patch }) });
   const clear = () => navigate({ search: {} });
   const activeCount = Object.values(search).filter(Boolean).length;
 

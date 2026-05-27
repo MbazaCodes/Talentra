@@ -12,6 +12,7 @@ import appCss from '../styles.css?url';
 import { AuthProvider } from '@/lib/auth';
 import { LangProvider } from '@/lib/i18n';
 import { Toaster } from '@/components/ui/sonner';
+import { SupabaseMissingBanner } from '@/components/supabase-missing-banner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 function NotFoundComponent() {
@@ -117,6 +118,7 @@ function RootComponent() {
       <LangProvider>
         <AuthProvider>
           <TooltipProvider>
+            <SupabaseMissingBanner />
             <Outlet />
             <Toaster />
           </TooltipProvider>
