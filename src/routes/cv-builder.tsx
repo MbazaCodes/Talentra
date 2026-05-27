@@ -44,6 +44,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { getUserProfile, saveUserProfile } from '@/lib/supabase-data';
 import { REGIONS } from '@/lib/kazi-data';
+import { CVCompanySearch } from '@/components/cv-company-search';
+import { CVReferenceSearch } from '@/components/cv-reference-search';
 
 export const Route = createFileRoute('/cv-builder')({ component: CVBuilderPage });
 
@@ -928,7 +930,39 @@ export default function CVBuilderPage() {
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div>
                             <Label>Full name *</Label>
-                            <Input className="mt-1" {...register(`references_list.${idx}.name`)} />
+                            <div className="mt-1">
+                              <CVReferenceSearch
+                                value={values.references_list?.[idx]?.name ?? ''}
+                                userId={
+                                  (values.references_list?.[idx] as Record<string, string>)?.user_id
+                                }
+                                verificationStatus={
+                                  ((values.references_list?.[idx] as Record<string, string>)
+                                    ?.verification_status as 'none' | 'pending' | 'approved') ??
+                                  'none'
+                                }
+                                jobApplyingFor={undefined}
+                                relationship={
+                                  values.references_list?.[idx]?.relationship ?? undefined
+                                }
+                                onChange={(name) => setValue(`references_list.${idx}.name`, name)}
+                                onSelect={(name, id) => {
+                                  setValue(`references_list.${idx}.name`, name);
+                                  setValue(`references_list.${idx}.user_id` as never, id as never);
+                                  setValue(
+                                    `references_list.${idx}.verification_status` as never,
+                                    'pending' as never,
+                                  );
+                                }}
+                                onClear={() => {
+                                  setValue(`references_list.${idx}.user_id` as never, '' as never);
+                                  setValue(
+                                    `references_list.${idx}.verification_status` as never,
+                                    'none' as never,
+                                  );
+                                }}
+                              />
+                            </div>
                           </div>
                           <div>
                             <Label>Job title</Label>
