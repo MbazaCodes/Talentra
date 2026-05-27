@@ -1454,26 +1454,33 @@ function PostJobPage() {
     const { data: jobResult, error: jobError } = await supabase
       .from('jobs')
       .insert({
-        company_id: selectedCompanyId,
-        posted_by: user.id,
-        created_by_role: roles.includes('admin') ? 'admin' : 'employer',
-        title: data.jobTitle.trim(),
-        description: details,
-        location: data.location.trim(),
-        region: null,
-        industry: data.industry || '',
-        position_level: data.experienceLevel as never,
-        contract_type: JOB_TYPE_TO_CONTRACT[
+        company_id:       selectedCompanyId,
+        posted_by:        user.id,
+        created_by_role:  roles.includes('admin') ? 'admin' : 'employer',
+        title:            data.jobTitle.trim(),
+        description:      details,
+        location:         data.location.trim(),
+        region:           data.location.trim() || null,
+        industry:         data.industry || '',
+        position_level:   data.experienceLevel as never,
+        contract_type:    JOB_TYPE_TO_CONTRACT[
           data.jobType as keyof typeof JOB_TYPE_TO_CONTRACT
         ] as never,
-        qualification: data.educationLevel as never,
-        salary_min: salaryMin || null,
-        salary_max: salaryMax || null,
-        currency: data.currency,
+        qualification:    data.educationLevel as never,
+        salary_min:       salaryMin || null,
+        salary_max:       salaryMax || null,
+        currency:         data.currency,
         salary_negotiable: false,
-        deadline: data.deadline || null,
-        status: 'published',
-        featured: data.featured,
+        deadline:         data.deadline || null,
+        status:           'published',
+        featured:         data.featured,
+        urgent:           (data.urgent ?? false) as never,
+        remote_friendly:  (data.remoteFriendly ?? false) as never,
+        requirements:     (data.requirements?.trim() || null) as never,
+        responsibilities: (data.responsibilities?.trim() || null) as never,
+        apply_method:     (data.applyMethod ?? 'internal') as never,
+        apply_email:      (data.applyEmail?.trim() || null) as never,
+        apply_url:        (data.applyUrl?.trim() || null) as never,
       })
       .select('id')
       .single();
