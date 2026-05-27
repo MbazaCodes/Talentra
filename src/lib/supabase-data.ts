@@ -114,16 +114,15 @@ export async function saveUserProfile(uid: string, profile: Partial<SeekerProfil
 export async function uploadResumeFile(uid: string, file: File) {
   const fileExt = file.name.split('.').pop();
   const timestamp = Date.now();
-  const fileName = `${uid}/${timestamp}.${fileExt}`;
-  const filePath = `resumes/${fileName}`;
+  // Path inside the bucket: uid/timestamp.ext
+  // The bucket is 'resumes', so do NOT prefix with 'resumes/'
+  const filePath = `${uid}/${timestamp}.${fileExt}`;
 
   const { error: uploadError } = await supabase.storage.from('resumes').upload(filePath, file);
 
   if (uploadError) throw uploadError;
 
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from('resumes').getPublicUrl(filePath);
+  const { data: { publicUrl } } = supabase.storage.from('resumes').getPublicUrl(filePath);
 
   await saveUserProfile(uid, { resumeUrl: publicUrl });
   return publicUrl;
