@@ -5,10 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Talentra — Connecting Talent to Opportunity</title>
     <meta name="description" content="Tanzania's smarter job network. Browse thousands of jobs in tourism, ICT, finance, healthcare, agriculture and more — in English &amp; Kiswahili." />
+    <meta name="theme-color" content="#0c2340" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Talentra — Connecting Talent to Opportunity" />
+    <meta property="og:description" content="Tanzania's smarter job network. Find your next role or hire great talent across every region." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/Logo.png" />
+
+    <!-- Favicons -->
     <link rel="icon" href="/Logo.png" />
     <link rel="apple-touch-icon" href="/Logo.png" />
+
+    <!-- Preconnect to Supabase for faster API calls -->
+    <link rel="preconnect" href="https://qqbfvxlgqbspvybzsklv.supabase.co" />
+    <link rel="dns-prefetch" href="https://qqbfvxlgqbspvybzsklv.supabase.co" />
+
+    <!-- Inline critical CSS for the splash screen -->
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { background: #f5f0e8; }
+      body { font-family: system-ui, sans-serif; }
+      #splash {
+        position: fixed; inset: 0; z-index: 9999;
+        background: #f5f0e8;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 16px;
+      }
+      #splash .logo {
+        width: 56px; height: 56px; border-radius: 14px;
+        background: #0c2340; color: #f5f0e8;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 28px; font-weight: 700; letter-spacing: -1px;
+      }
+      #splash .name {
+        font-size: 22px; font-weight: 600; color: #0c2340; letter-spacing: -0.5px;
+      }
+      #splash .bar {
+        width: 120px; height: 3px; background: #e8e0d4; border-radius: 99px; overflow: hidden;
+      }
+      #splash .bar::after {
+        content: ''; display: block; width: 40%; height: 100%;
+        background: #c4654a; border-radius: 99px;
+        animation: slide 1s ease-in-out infinite;
+      }
+      @keyframes slide {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(350%); }
+      }
+    </style>
   </head>
   <body>
+    <!-- Instant splash shown before JS loads -->
+    <div id="splash">
+      <div class="logo">T</div>
+      <div class="name">Talentra</div>
+      <div class="bar"></div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/client-entry.tsx"></script>
   </body>

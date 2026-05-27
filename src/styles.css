@@ -2,12 +2,13 @@
 @source "../src";
 @import 'tw-animate-css';
 
-@import '@fontsource/sora/400.css';
-@import '@fontsource/sora/600.css';
-@import '@fontsource/sora/700.css';
-@import '@fontsource/manrope/400.css';
-@import '@fontsource/manrope/500.css';
-@import '@fontsource/manrope/600.css';
+/* Latin subset only — eliminates Greek/Cyrillic/Vietnamese font files (~60 % smaller) */
+@import '@fontsource/sora/latin-400.css';
+@import '@fontsource/sora/latin-600.css';
+@import '@fontsource/sora/latin-700.css';
+@import '@fontsource/manrope/latin-400.css';
+@import '@fontsource/manrope/latin-500.css';
+@import '@fontsource/manrope/latin-600.css';
 
 @custom-variant dark (&:is(.dark *));
 

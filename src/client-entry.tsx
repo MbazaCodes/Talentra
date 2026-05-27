@@ -1,6 +1,5 @@
 /**
  * Client-only entry point for Vercel SPA deployment.
- * Bypasses TanStack Start SSR — renders entirely in the browser.
  */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -9,6 +8,10 @@ import { getRouter } from './router';
 import './styles.css';
 
 const router = getRouter();
+
+// Remove the initial loading skeleton once JS is ready
+const splash = document.getElementById('splash');
+if (splash) splash.remove();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
