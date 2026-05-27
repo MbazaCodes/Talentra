@@ -145,6 +145,164 @@ function LandingPage() {
             </div>
           </div>
 
+          {/* Hero image */}
+          <div className="relative hidden md:block">
+            <div className="absolute -inset-4 bg-gradient-to-tr from-accent/15 via-peach/15 to-primary/10 rounded-[2rem] blur-2xl" />
+            <img
+              src="/hero-kazi.jpg"
+              alt="Tanzanian professionals — software engineer, finance manager, field engineers"
+              width={800}
+              height={800}
+              className="relative rounded-3xl shadow-xl object-cover aspect-square w-full border-4 border-background"
+              loading="eager"
+            />
+          </div>ct from 'react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
+import {
+  Search,
+  MapPin,
+  ArrowRight,
+  BadgeCheck,
+  Briefcase,
+  Users,
+  Sparkles,
+  TrendingUp,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { SiteHeader, SiteFooter, MobileBottomNav } from '@/components/site-chrome';
+import { JobCard, JobCardSkeleton, type JobCardData } from '@/components/job-card';
+import { supabase } from '@/integrations/supabase/client';
+import { REGIONS, INDUSTRIES } from '@/lib/kazi-data';
+import { useT, useLang } from '@/lib/i18n';
+
+export const Route = createFileRoute('/')({ component: LandingPage });
+
+const POPULAR_SEARCHES = ['Dar es Salaam', 'ICT', 'NGO', 'Banking', 'Remote', 'Arusha'];
+
+const STATS = [
+  { icon: Briefcase, value: '12,500+', label: 'Active jobs' },
+  { icon: Users, value: '800+', label: 'Verified employers' },
+  { icon: TrendingUp, value: '50k+', label: 'Job seekers' },
+  { icon: BadgeCheck, value: '26', label: 'Regions covered' },
+];
+
+function LandingPage() {
+  const t = useT();
+  const { lang } = useLang();
+  const navigate = useNavigate();
+  const [q, setQ] = React.useState('');
+  const [region, setRegion] = React.useState<string>('');
+
+  const { data: featured, isLoading } = useQuery({
+    queryKey: ['featured-jobs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select(
+          'id,title,location,region,industry,contract_type,salary_min,salary_max,salary_negotiable,currency,created_at,deadline,featured,companies(name,logo_url,verified)',
+        )
+        .eq('status', 'published')
+        .order('featured', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(6);
+      if (error) throw error;
+      return (data ?? []) as unknown as JobCardData[];
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate({
+      to: '/jobs',
+      search: { q: q || undefined, region: region || undefined } as never,
+    });
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col pb-16 md:pb-0">
+      <SiteHeader />
+
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-background via-cream/60 to-background min-h-[480px]">
+        <div className="container mx-auto px-4 py-12 md:py-20 grid md:grid-cols-2 gap-10 items-center">
+          <div className="space-y-5">
+            <Badge variant="secondary" className="bg-cream border border-border text-foreground/80">
+              <Sparkles className="h-3 w-3 mr-1 text-accent" /> {t('tagline')}
+            </Badge>
+            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05]">
+              {t('hero_title_1')}{' '}
+              <span className="relative whitespace-nowrap">
+                <span className="text-accent">{t('hero_title_2')}</span>
+                <span className="absolute -bottom-1 left-0 right-0 h-2 bg-peach/40 -z-10 rounded" />
+              </span>
+            </h1>
+            <p className="text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed">
+              {t('hero_sub')}
+            </p>
+
+            {/* Search bar */}
+            <form
+              onSubmit={handleSearch}
+              className="bg-card border border-border rounded-2xl shadow-sm p-2 flex flex-col sm:flex-row gap-2"
+            >
+              <div className="flex-1 flex items-center gap-2 px-3">
+                <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder={t('search_title')}
+                  className="border-0 shadow-none focus-visible:ring-0 px-0 h-9"
+                />
+              </div>
+              <div className="sm:w-44 flex items-center gap-2 px-3 sm:border-l border-border">
+                <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Select value={region} onValueChange={setRegion}>
+                  <SelectTrigger className="border-0 shadow-none focus:ring-0 px-0 h-auto text-sm w-full">
+                    <SelectValue placeholder={t('search_location')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REGIONS.map((r) => (
+                      <SelectItem key={r} value={r}>
+                        {r}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                type="submit"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground shrink-0"
+              >
+                {t('search_btn')}
+              </Button>
+            </form>
+
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+              <span className="text-muted-foreground">Popular:</span>
+              {POPULAR_SEARCHES.map((tag) => (
+                <Link
+                  key={tag}
+                  to="/jobs"
+                  search={{ q: tag } as never}
+                  className="text-foreground/70 hover:text-accent underline-offset-4 hover:underline transition-colors"
+                >
+                  {tag}
+                </Link>
+              ))}
+            </div>
+          </div>
+
           {/* Hero illustration */}
           <div className="relative hidden md:block">
             <div className="absolute -inset-4 bg-gradient-to-tr from-accent/15 via-peach/15 to-primary/10 rounded-[2rem] blur-2xl" />
