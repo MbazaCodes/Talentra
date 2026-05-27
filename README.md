@@ -82,3 +82,38 @@ npx wrangler deploy
 - Auth-required routes redirect unauthenticated users
 - Security headers configured in `vercel.json`
 - No secrets are committed — always use environment variables
+
+## Running migrations
+
+### Apply all migrations to your Supabase project
+
+```bash
+# Link to your project (first time only)
+npx supabase link --project-ref qqbfvxlgqbspvybzsklv
+
+# Push all migrations
+npx supabase db push
+```
+
+Or apply them manually in the **Supabase dashboard → SQL Editor** in order:
+1. `20260526105348_*.sql` — Initial schema
+2. `20260526105402_*.sql` — Function security
+3. `20260526110500_*.sql` — Job reports & employer tiers
+4. `20260526120000_*.sql` — Extended profile fields & contact messages
+5. `20260527000000_security_and_reliability_hardening.sql` — **Security hardening** ⬅ run this last
+
+### What migration 5 fixes
+
+| Issue | Severity | Fix |
+|---|---|---|
+| `has_role()` not executable by authenticated users | 🔴 Critical | Grants execute back to `authenticated` role |
+| Privilege escalation via signup `role=admin` | 🔴 Critical | `handle_new_user()` hard-blocks admin self-assignment |
+| No salary range validation | 🟡 Medium | `CHECK (salary_min <= salary_max)` |
+| Currency free-text field | 🟡 Medium | Constrained to allowlist (TZS, USD, EUR, etc.) |
+| Same user can file infinite reports | 🟡 Medium | Unique constraint `(job_id, reporter_id)` |
+| Applications to closed/expired jobs | 🟡 Medium | RLS policy checks job status and deadline |
+| No full-text search index | 🟡 Medium | Generated `tsvector` column + GIN index |
+| Missing performance indexes | 🟠 Low | 10 new indexes on FK columns |
+| CRLF in migration 3 | 🟠 Low | Converted to LF |
+| No `updated_at` trigger on profiles | 🟠 Low | Auto-trigger added |
+| Contact form spam | 🟠 Low | Rate-limited to 3 submissions per email per 24h |
