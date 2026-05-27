@@ -25,6 +25,9 @@ import {
 } from '@/lib/supabase-data';
 import { EmployeeProfile } from '@/components/employee-profile';
 import { EmployerBadge } from '@/components/employer-badge';
+import { JobAlertSettings } from '@/components/job-alert-settings';
+import { NotificationsCenter } from '@/components/notifications-center';
+import { OpenToWorkToggle } from '@/components/open-to-work-toggle';
 
 export const Route = createFileRoute('/dashboard')({ component: Dashboard });
 
@@ -606,6 +609,10 @@ function SeekerView({
             )}
           </div>
         </Card>
+
+        <NotificationsCenter />
+        <OpenToWorkToggle />
+        <JobAlertSettings />
       </div>
     </div>
   );
