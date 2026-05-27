@@ -432,18 +432,22 @@ function PostJobPage() {
 
   const stepLabels = ['Company', 'Job details', 'Applications', 'Extras'];
 
-  const STEP_FIELDS: Record<number, Parameters<typeof trigger>[0]> = {
+  // Fields to validate per step — only check the current step's required fields
+  const STEP_FIELDS: Record<number, string[]> = {
     1: ['companyId', 'companyName', 'companyWebsite', 'industry', 'companyLocation'],
     2: ['jobTitle', 'category', 'jobType', 'location', 'description'],
-    3: ['applyMethod', 'applyEmail', 'applyUrl'],
+    3: ['applyMethod'],
     4: [],
   };
 
   const goNext = async () => {
     const fields = STEP_FIELDS[step] ?? [];
-    const success = fields.length > 0 ? await trigger(fields) : true;
+    // Cast to any to bypass RHF's strict generic typing — field names are correct
+    const success = fields.length > 0
+      ? await trigger(fields as Parameters<typeof trigger>[0])
+      : true;
     if (!success) {
-      toast.error('Please fill in all required fields before continuing.');
+      toast.error('Please complete all required fields before continuing.');
       return;
     }
     setStep((current) => Math.min(current + 1, 4));
