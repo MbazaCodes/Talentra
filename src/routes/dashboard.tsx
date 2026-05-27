@@ -1,9 +1,29 @@
 import * as React from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Briefcase, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import {
+  Briefcase,
+  ShieldCheck,
+  CheckCircle2,
+  User2,
+  Bookmark,
+  FileText,
+  Bell,
+  MapPin,
+  Phone,
+  Globe2,
+  Pencil,
+  ChevronRight,
+  Clock,
+  BarChart3,
+  Send,
+  Star,
+  Upload,
+  X,
+  Plus,
+  AlertCircle,
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -11,6 +31,14 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { SiteHeader, SiteFooter, MobileBottomNav } from '@/components/site-chrome';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
@@ -25,9 +53,7 @@ import {
 } from '@/lib/supabase-data';
 import { EmployeeProfile } from '@/components/employee-profile';
 import { EmployerBadge } from '@/components/employer-badge';
-import { JobAlertSettings } from '@/components/job-alert-settings';
-import { NotificationsCenter } from '@/components/notifications-center';
-import { OpenToWorkToggle } from '@/components/open-to-work-toggle';
+import { REGIONS } from '@/lib/kazi-data';
 
 export const Route = createFileRoute('/dashboard')({ component: Dashboard });
 
@@ -36,6 +62,28 @@ type EmployerJob = Pick<
   'id' | 'title' | 'status' | 'created_at'
 > & { companies: { name: string } | null };
 
+// ─── Status colour map ────────────────────────────────────────────────────────
+const STATUS_COLORS: Record<string, string> = {
+  applied: 'bg-blue-100 text-blue-800',
+  under_review: 'bg-amber-100 text-amber-800',
+  shortlisted: 'bg-purple-100 text-purple-800',
+  interview: 'bg-indigo-100 text-indigo-800',
+  offer: 'bg-emerald-100 text-emerald-800',
+  hired: 'bg-emerald-200 text-emerald-900',
+  rejected: 'bg-red-100 text-red-800',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  applied: 'Applied',
+  under_review: 'Under review',
+  shortlisted: 'Shortlisted',
+  interview: 'Interview',
+  offer: 'Offer',
+  hired: 'Hired 🎉',
+  rejected: 'Not selected',
+};
+
+// ─── Main Dashboard ───────────────────────────────────────────────────────────
 function Dashboard() {
   const { user, loading, roles } = useAuth();
   const navigate = useNavigate();
@@ -46,114 +94,126 @@ function Dashboard() {
   }, [user, loading, navigate]);
 
   const isEmployer = roles.includes('employer') || roles.includes('admin');
-  const isEmployee = roles.includes('employee') || roles.includes('job_seeker');
-  const profileQuery = useQuery({
+
+  const { data: profile } = useQuery({
     queryKey: ['supabase-profile', user?.id],
     enabled: !!user?.id,
     queryFn: () => getUserProfile(user!.id),
   });
-  const { data: profile } = profileQuery;
-
-  const suggestions = React.useMemo(() => {
-    if (!user) return [];
-    const items = [];
-    if (!profile?.headline)
-      items.push({
-        title: 'Write a headline',
-        description: 'Summarize what makes you a strong candidate.',
-      });
-    if (!profile?.bio)
-      items.push({
-        title: 'Add a career summary',
-        description: 'Help employers understand your experience.',
-      });
-    if (!profile?.location)
-      items.push({
-        title: 'Set your location',
-        description: 'Nearby roles are easier to match.',
-      });
-    if (!profile?.skills?.length)
-      items.push({
-        title: 'Share your top skills',
-        description: 'Add keywords employers look for.',
-      });
-    if (!profile?.resumeUrl)
-      items.push({
-        title: 'Upload your resume',
-        description: 'Let employers review your experience quickly.',
-      });
-    if (items.length === 0)
-      items.push({
-        title: isEmployer ? 'Post a new job' : 'Explore roles',
-        description: isEmployer
-          ? 'Keep your employer brand visible.'
-          : 'Apply to opportunities with your updated profile.',
-      });
-    return items;
-  }, [profile, isEmployer, user]);
 
   if (loading || !user) return null;
 
+  // Display name: full_name > metadata name > email prefix
+  const displayName =
+    profile?.full_name ||
+    (user.user_metadata as Record<string, string> | undefined)?.full_name ||
+    user.email?.split('@')[0] ||
+    'My Account';
+
+  const roleLabel = roles.includes('admin')
+    ? 'Admin'
+    : roles.includes('employer')
+      ? 'Employer'
+      : roles.includes('employee')
+        ? 'Employee'
+        : 'Job seeker';
+
   return (
-    <div className="min-h-screen flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col pb-16 md:pb-0 bg-background">
       <SiteHeader />
+
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="font-display text-3xl font-semibold">Dashboard</h1>
-            <p className="text-muted-foreground mt-1 truncate">{user.email}</p>
+        {/* ── Page header ───────────────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <div className="h-14 w-14 rounded-2xl bg-accent/10 border border-border grid place-items-center shrink-0">
+              <span className="font-display text-xl font-bold text-accent">
+                {displayName[0]?.toUpperCase() ?? 'U'}
+              </span>
+            </div>
+            <div>
+              <h1 className="font-display text-2xl font-bold leading-tight">{displayName}</h1>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+                <Badge variant="secondary" className="text-xs">
+                  {roleLabel}
+                </Badge>
+                <EmployerBadge userId={user.id} size="sm" />
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary">
-              {roles.includes('job_seeker')
-                ? 'Job seeker'
-                : roles.includes('employer')
-                  ? 'Employer'
-                  : roles.includes('employee')
-                    ? 'Employee'
-                    : 'Member'}
-            </Badge>
-            <EmployerBadge userId={user.id} size="sm" />
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/cv-builder">
+                <FileText className="h-3.5 w-3.5 mr-1.5" /> CV Builder
+              </Link>
+            </Button>
+            {isEmployer && (
+              <Button
+                asChild
+                size="sm"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
+                <Link to="/post-job">
+                  <Plus className="h-3.5 w-3.5 mr-1.5" /> Post a job
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
-        {suggestions.length > 0 && (
-          <Alert className="mt-6">
-            <AlertTitle>Profile suggestion</AlertTitle>
-            <AlertDescription>
-              {isEmployer
-                ? 'Complete your employer profile to attract more candidates.'
-                : 'Complete your seeker profile to improve job matches.'}
-            </AlertDescription>
-          </Alert>
-        )}
-        <div className="grid gap-4 mt-6 md:grid-cols-2">
-          {suggestions.map((item) => (
-            <Card key={item.title} className="p-5">
-              <h3 className="font-semibold">{item.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
-            </Card>
-          ))}
-        </div>
-        <Tabs defaultValue={isEmployer ? 'employer' : 'seeker'} className="mt-6">
-          <TabsList>
-            <TabsTrigger value="seeker">Job seeker</TabsTrigger>
+
+        {/* ── Tabs ──────────────────────────────────────────────────────── */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="h-10">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="profile">My profile</TabsTrigger>
+            <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="saved">Saved jobs</TabsTrigger>
             <TabsTrigger value="employee">Employee</TabsTrigger>
             {isEmployer && <TabsTrigger value="employer">Employer</TabsTrigger>}
           </TabsList>
-          <TabsContent value="seeker">
-            <SeekerView
+
+          {/* Overview tab */}
+          <TabsContent value="overview">
+            <OverviewTab
               user={user}
               profile={profile ?? null}
-              refetchProfile={() =>
-                queryClient.invalidateQueries({
-                  queryKey: ['supabase-profile', user.id],
-                })
+              roles={roles}
+              isEmployer={isEmployer}
+              refetch={() =>
+                queryClient.invalidateQueries({ queryKey: ['supabase-profile', user.id] })
               }
             />
           </TabsContent>
+
+          {/* Profile tab */}
+          <TabsContent value="profile">
+            <ProfileTab
+              user={user}
+              profile={profile ?? null}
+              onSave={() =>
+                queryClient.invalidateQueries({ queryKey: ['supabase-profile', user.id] })
+              }
+            />
+          </TabsContent>
+
+          {/* Applications tab */}
+          <TabsContent value="applications">
+            <ApplicationsTab userId={user.id} />
+          </TabsContent>
+
+          {/* Saved jobs tab */}
+          <TabsContent value="saved">
+            <SavedJobsTab userId={user.id} />
+          </TabsContent>
+
+          {/* Employee tab */}
           <TabsContent value="employee">
             <EmployeeProfile />
           </TabsContent>
+
+          {/* Employer tab */}
           {isEmployer && (
             <TabsContent value="employer">
               <EmployerView userId={user.id} />
@@ -161,273 +221,26 @@ function Dashboard() {
           )}
         </Tabs>
       </div>
+
       <SiteFooter />
       <MobileBottomNav />
     </div>
   );
 }
 
-function ProfileForm({
+// ─── Overview Tab ─────────────────────────────────────────────────────────────
+function OverviewTab({
   user,
   profile,
-  onSave,
+  roles,
+  isEmployer,
+  refetch,
 }: {
-  user: {
-    id: string;
-    email?: string | null;
-    user_metadata?: {
-      email_confirmed?: boolean;
-    };
-  };
+  user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> };
   profile: SeekerProfile | null;
-  onSave: () => void;
-}) {
-  // Seed from auth metadata if profile fields are empty (first login after signup)
-  const metaName = (user.user_metadata as Record<string, string> | undefined)?.full_name ?? '';
-  const metaPhone = (user.user_metadata as Record<string, string> | undefined)?.phone ?? '';
-
-  const [fullName, setFullName] = React.useState(profile?.full_name || metaName || '');
-  const [headline, setHeadline] = React.useState(profile?.headline ?? '');
-  const [location, setLocation] = React.useState(profile?.location ?? '');
-  const [phone, setPhone] = React.useState(profile?.phone || metaPhone || '');
-  const [bio, setBio] = React.useState(profile?.bio ?? '');
-  const [portfolioUrl, setPortfolioUrl] = React.useState(profile?.portfolioUrl ?? '');
-  const [skillInput, setSkillInput] = React.useState('');
-  const [skills, setSkills] = React.useState<string[]>(profile?.skills ?? []);
-  const [experience, setExperience] = React.useState((profile?.experience ?? []).join('\n'));
-  const [education, setEducation] = React.useState((profile?.education ?? []).join('\n'));
-  const [busy, setBusy] = React.useState(false);
-
-  // Re-sync when profile loads (async)
-  React.useEffect(() => {
-    if (!profile) return;
-    if (profile.full_name) setFullName(profile.full_name);
-    if (profile.phone) setPhone(profile.phone);
-    if (profile.headline) setHeadline(profile.headline);
-    if (profile.location) setLocation(profile.location);
-    if (profile.bio) setBio(profile.bio);
-    if (profile.portfolioUrl) setPortfolioUrl(profile.portfolioUrl);
-    if (profile.skills?.length) setSkills(profile.skills);
-  }, [profile]);
-
-  const profileCompletion = React.useMemo(() => {
-    const completed = [
-      headline,
-      bio,
-      location,
-      skills.length > 0,
-      portfolioUrl,
-      profile?.resumeUrl,
-    ].filter(Boolean).length;
-    return Math.round((completed / 6) * 100);
-  }, [headline, bio, location, portfolioUrl, profile?.resumeUrl, skills.length]);
-
-  const handleAddSkill = () => {
-    const trimmed = skillInput.trim();
-    if (!trimmed || skills.includes(trimmed)) return;
-    setSkills([...skills, trimmed]);
-    setSkillInput('');
-  };
-  const handleRemoveSkill = (skill: string) => {
-    setSkills(skills.filter((s) => s !== skill));
-  };
-
-  const saveProfile = async () => {
-    setBusy(true);
-    try {
-      await saveUserProfile(user.id, {
-        full_name: fullName,
-        email: user.email ?? '',
-        headline,
-        bio,
-        location,
-        phone,
-        portfolioUrl,
-        skills,
-        experience: experience
-          .split('\n')
-          .map((s) => s.trim())
-          .filter(Boolean),
-        education: education
-          .split('\n')
-          .map((s) => s.trim())
-          .filter(Boolean),
-        verified: profile?.verified ?? false,
-      });
-      toast.success('Profile updated successfully');
-      onSave();
-    } catch (error) {
-      toast.error((error as Error).message || 'Unable to save profile');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setBusy(true);
-    try {
-      await uploadResumeFile(user.id, file);
-      toast.success('Resume uploaded successfully');
-      onSave();
-    } catch (error) {
-      toast.error((error as Error).message || 'Unable to upload resume');
-    } finally {
-      setBusy(false);
-      event.target.value = '';
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <Card className="p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-display text-lg font-semibold">Profile builder</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              A complete seeker profile helps you stand out to hiring teams.
-            </p>
-          </div>
-          <Badge variant="secondary">{profileCompletion}% complete</Badge>
-        </div>
-        <div className="grid gap-4 mt-6 md:grid-cols-2">
-          <div className="space-y-4">
-            <div>
-              <Label>Full name</Label>
-              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
-            </div>
-            <div>
-              <Label>Headline</Label>
-              <Input
-                value={headline}
-                onChange={(e) => setHeadline(e.target.value)}
-                placeholder="Example: Product Designer with 5 years in fintech"
-              />
-            </div>
-            <div>
-              <Label>Location</Label>
-              <Input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="City, region"
-              />
-            </div>
-            <div>
-              <Label>Portfolio URL</Label>
-              <Input
-                type="url"
-                value={portfolioUrl}
-                onChange={(e) => setPortfolioUrl(e.target.value)}
-                placeholder="https://"
-              />
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <Label>Bio</Label>
-              <Textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                rows={6}
-                placeholder="Summarize your role, goals, and what you bring to a team."
-              />
-            </div>
-            <div>
-              <Label>Skills</Label>
-              <div className="flex gap-2 mt-2">
-                <Input
-                  value={skillInput}
-                  onChange={(e) => setSkillInput(e.target.value)}
-                  placeholder="Add a skill"
-                />
-                <Button type="button" variant="secondary" onClick={handleAddSkill}>
-                  Add
-                </Button>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {skills.map((skill) => (
-                  <Badge
-                    key={skill}
-                    className="cursor-pointer"
-                    variant="outline"
-                    onClick={() => handleRemoveSkill(skill)}
-                  >
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="grid gap-4 mt-6 md:grid-cols-2">
-          <div>
-            <Label>Experience</Label>
-            <Textarea
-              value={experience}
-              onChange={(e) => setExperience(e.target.value)}
-              rows={5}
-              placeholder="One role per line"
-            />
-          </div>
-          <div>
-            <Label>Education</Label>
-            <Textarea
-              value={education}
-              onChange={(e) => setEducation(e.target.value)}
-              rows={5}
-              placeholder="One qualification per line"
-            />
-          </div>
-        </div>
-        <div className="grid gap-4 mt-6 md:grid-cols-2 items-end">
-          <div>
-            <Label>Resume</Label>
-            <Input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
-            {profile?.resumeUrl && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Resume uploaded.{' '}
-                <a
-                  href={profile.resumeUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-accent underline"
-                >
-                  View file
-                </a>
-                .
-              </p>
-            )}
-          </div>
-          <div className="text-right">
-            <Button
-              className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground"
-              onClick={saveProfile}
-              disabled={busy}
-            >
-              {busy ? 'Saving' : 'Save profile'}
-            </Button>
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-function SeekerView({
-  user,
-  profile,
-  refetchProfile,
-}: {
-  user: {
-    id: string;
-    email?: string | null;
-    user_metadata?: {
-      email_confirmed?: boolean;
-    };
-  };
-  profile: SeekerProfile | null;
-  refetchProfile: () => void;
+  roles: string[];
+  isEmployer: boolean;
+  refetch: () => void;
 }) {
   const { data: applications } = useQuery({
     queryKey: ['supabase-applications', user.id],
@@ -439,216 +252,744 @@ function SeekerView({
     queryFn: () => fetchSavedJobs(user.id),
     enabled: !!user.id,
   });
-  const completeStatus = profile?.verified || user?.user_metadata?.email_confirmed;
 
-  const handleSendVerification = async () => {
-    if (!user?.email) return;
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: user.email,
-      });
-      if (error) throw error;
-      toast.success('Verification email sent. Check your inbox.');
-    } catch (error) {
-      toast.error((error as Error).message || 'Unable to send verification email.');
-    }
-  };
+  // Profile completion
+  const completionItems = [
+    { label: 'Full name', done: !!profile?.full_name },
+    { label: 'Headline', done: !!profile?.headline },
+    { label: 'Bio', done: !!profile?.bio },
+    { label: 'Phone', done: !!profile?.phone },
+    { label: 'Location', done: !!profile?.location },
+    { label: 'Skills (3+)', done: (profile?.skills?.length ?? 0) >= 3 },
+    { label: 'Resume', done: !!profile?.resumeUrl },
+  ];
+  const completionPct = Math.round(
+    (completionItems.filter((i) => i.done).length / completionItems.length) * 100,
+  );
 
-  const { data: sentRefs } = useQuery({
-    queryKey: ['sent-reference-requests', user.id],
-    queryFn: async () => {
-      // New table — cast to any until types are regenerated post-migration
-      const { data } = await (supabase as any)
-        .from('reference_requests')
-        .select('id,status,recommendation,rating,requested_at,completed_at,companies(name)')
-        .eq('seeker_id', user.id)
-        .order('requested_at', { ascending: false });
-      return (data ?? []) as Array<{
-        id: string;
-        status: string;
-        recommendation: string | null;
-        rating: number | null;
-        requested_at: string;
-        companies: { name: string } | null;
-      }>;
-    },
-    enabled: !!user.id,
-  });
+  const recentApps = applications?.slice(0, 3) ?? [];
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1.6fr_0.9fr] mt-4">
-      <div className="space-y-4">
-        <ProfileForm user={user} profile={profile} onSave={refetchProfile} />
+    <div className="grid gap-5 lg:grid-cols-3">
+      {/* Left column */}
+      <div className="lg:col-span-2 space-y-5">
+        {/* Quick stats */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { icon: Send, value: applications?.length ?? 0, label: 'Applied' },
+            { icon: Bookmark, value: savedJobs?.length ?? 0, label: 'Saved' },
+            {
+              icon: Star,
+              value: applications?.filter((a) => a.status === 'shortlisted').length ?? 0,
+              label: 'Shortlisted',
+            },
+          ].map(({ icon: Icon, value, label }) => (
+            <Card key={label} className="p-4 text-center">
+              <Icon className="h-5 w-5 text-accent mx-auto mb-1" />
+              <div className="font-display text-2xl font-bold">{value}</div>
+              <div className="text-xs text-muted-foreground">{label}</div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Recent applications */}
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-display text-lg font-semibold">Applications</h3>
-              <p className="text-sm text-muted-foreground">
-                Track your active and past applications.
-              </p>
-            </div>
-            <Badge variant="secondary">{applications?.length ?? 0}</Badge>
+            <h3 className="font-display font-semibold">Recent applications</h3>
+            <Button asChild variant="ghost" size="sm" className="text-accent h-7">
+              <Link to="/dashboard" search={{ tab: 'applications' } as never}>
+                View all
+              </Link>
+            </Button>
           </div>
-          <div className="space-y-3">
-            {applications?.length ? (
-              applications.map((app) => (
-                <div key={app.id} className="rounded-xl border border-border p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{app.jobTitle}</p>
-                      <p className="text-sm text-muted-foreground">{app.companyName}</p>
-                    </div>
-                    <Badge variant="outline" className="uppercase text-[10px]">
-                      {app.status}
-                    </Badge>
+          {recentApps.length > 0 ? (
+            <div className="space-y-3">
+              {recentApps.map((app) => (
+                <div
+                  key={app.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">{app.jobTitle}</p>
+                    <p className="text-xs text-muted-foreground">{app.companyName}</p>
                   </div>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_COLORS[app.status] ?? 'bg-muted text-muted-foreground'}`}
+                  >
+                    {STATUS_LABELS[app.status] ?? app.status}
+                  </span>
                 </div>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                You have not applied to any roles yet. Visit the jobs page to discover new
-                opportunities.
-              </p>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-border p-6 text-center">
+              <Briefcase className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No applications yet</p>
+              <Button asChild variant="outline" size="sm" className="mt-3">
+                <Link to="/jobs">Browse jobs</Link>
+              </Button>
+            </div>
+          )}
         </Card>
-      </div>
-      <div className="space-y-4">
-        <Card className="p-5">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-accent/10 p-3 text-accent">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-display text-lg font-semibold">Verification</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Keep your account trusted by completing email verification.
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 grid gap-3">
-            <div className="rounded-xl border border-border p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Email verified</p>
-                  <p className="text-sm text-muted-foreground">
-                    {completeStatus
-                      ? 'Yes, your email is verified.'
-                      : 'Your account email is not verified yet.'}
-                  </p>
+
+        {/* Profile incomplete warning */}
+        {completionPct < 80 && (
+          <Card className="p-5 border-amber-200 bg-amber-50/50">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm text-amber-900">Complete your profile</p>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  {completionPct}% done — employers are {100 - completionPct}% less likely to
+                  contact incomplete profiles.
+                </p>
+                <div className="mt-3 space-y-1.5">
+                  {completionItems
+                    .filter((i) => !i.done)
+                    .map((item) => (
+                      <div
+                        key={item.label}
+                        className="flex items-center gap-2 text-xs text-amber-800"
+                      >
+                        <div className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
+                        {item.label} missing
+                      </div>
+                    ))}
                 </div>
-                {completeStatus ? (
-                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                ) : (
-                  <Badge variant="outline">Pending</Badge>
-                )}
+                <Button
+                  asChild
+                  size="sm"
+                  className="mt-3 bg-accent hover:bg-accent/90 text-accent-foreground"
+                >
+                  <Link to="/dashboard">Complete profile →</Link>
+                </Button>
               </div>
             </div>
-            {!completeStatus && (
-              <Button
-                onClick={handleSendVerification}
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
-              >
-                Send verification email
-              </Button>
-            )}
-          </div>
-        </Card>
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-display text-lg font-semibold">My references</h3>
-            <Badge variant="secondary">{sentRefs?.length ?? 0}</Badge>
-          </div>
-          <div className="space-y-2">
-            {sentRefs?.length ? (
-              sentRefs.map(
-                (r: {
-                  id: string;
-                  status: string;
-                  recommendation: string | null;
-                  rating: number | null;
-                  requested_at: string;
-                  companies: { name: string } | null;
-                }) => (
-                  <div key={r.id} className="rounded-xl border border-border p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium truncate">
-                        {r.companies?.name ?? 'Company'}
-                      </p>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
-                          r.status === 'completed'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : r.status === 'accepted'
-                              ? 'bg-blue-100 text-blue-800'
-                              : r.status === 'pending'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-muted text-muted-foreground'
-                        }`}
-                      >
-                        {r.status}
-                      </span>
-                    </div>
-                    {r.status === 'completed' && r.recommendation && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2 italic">
-                        "{r.recommendation}"
-                      </p>
-                    )}
-                  </div>
-                ),
-              )
-            ) : (
-              <p className="text-sm text-muted-foreground">No reference requests sent yet.</p>
-            )}
-          </div>
-        </Card>
+          </Card>
+        )}
+      </div>
 
+      {/* Right column */}
+      <div className="space-y-5">
+        {/* Profile card */}
         <Card className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-display text-lg font-semibold">Saved jobs</h3>
-              <p className="text-sm text-muted-foreground">Keep roles you want to return to.</p>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-12 w-12 rounded-xl bg-accent/10 grid place-items-center">
+              <User2 className="h-6 w-6 text-accent" />
             </div>
-            <Badge variant="secondary">{savedJobs?.length ?? 0}</Badge>
-          </div>
-          <div className="space-y-3">
-            {savedJobs?.length ? (
-              savedJobs.map((saved) => (
-                <div key={saved.id} className="rounded-xl border border-border p-4">
-                  <p className="font-medium">{saved.jobTitle}</p>
-                  <p className="text-sm text-muted-foreground">{saved.companyName}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Save jobs from listings and they'll appear here.
+            <div>
+              <p className="font-semibold text-sm">{profile?.full_name || 'Add your name'}</p>
+              <p className="text-xs text-muted-foreground">
+                {profile?.headline || 'Add a headline'}
               </p>
+            </div>
+          </div>
+          <div className="space-y-1.5 text-xs text-muted-foreground">
+            {profile?.location && (
+              <div className="flex items-center gap-1.5">
+                <MapPin className="h-3 w-3 shrink-0" /> {profile.location}
+              </div>
+            )}
+            {profile?.phone && (
+              <div className="flex items-center gap-1.5">
+                <Phone className="h-3 w-3 shrink-0" /> {profile.phone}
+              </div>
+            )}
+            {profile?.portfolioUrl && (
+              <div className="flex items-center gap-1.5">
+                <Globe2 className="h-3 w-3 shrink-0" />
+                <a
+                  href={profile.portfolioUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-accent hover:underline truncate"
+                >
+                  Portfolio
+                </a>
+              </div>
             )}
           </div>
+          {/* Completion ring */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium">Profile strength</span>
+              <span className="text-xs text-muted-foreground">{completionPct}%</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${completionPct >= 80 ? 'bg-emerald-500' : completionPct >= 50 ? 'bg-amber-500' : 'bg-red-400'}`}
+                style={{ width: `${completionPct}%` }}
+              />
+            </div>
+          </div>
+          <Button asChild variant="outline" size="sm" className="mt-4 w-full">
+            <Link to="/dashboard">
+              <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit profile
+            </Link>
+          </Button>
         </Card>
 
-        <NotificationsCenter />
-        <OpenToWorkToggle />
-        <JobAlertSettings />
+        {/* Email verification */}
+        <VerificationCard user={user} profile={profile} />
+
+        {/* Quick links */}
+        <Card className="p-5">
+          <h3 className="font-display font-semibold text-sm mb-3">Quick links</h3>
+          <div className="space-y-1">
+            {[
+              { label: 'CV Builder', to: '/cv-builder', icon: FileText },
+              { label: 'Browse jobs', to: '/jobs', icon: Briefcase },
+            ].map(({ label, to, icon: Icon }) => (
+              <Link
+                key={label}
+                to={to as never}
+                className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  {label}
+                </div>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              </Link>
+            ))}
+          </div>
+        </Card>
       </div>
     </div>
   );
 }
 
+// ─── Verification Card ────────────────────────────────────────────────────────
+function VerificationCard({
+  user,
+  profile,
+}: {
+  user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> };
+  profile: SeekerProfile | null;
+}) {
+  const verified =
+    profile?.verified ||
+    (user.user_metadata as Record<string, boolean> | undefined)?.email_confirmed;
+
+  const sendVerification = async () => {
+    if (!user.email) return;
+    const { error } = await supabase.auth.resend({ type: 'signup', email: user.email });
+    if (error) toast.error(error.message);
+    else toast.success('Verification email sent. Check your inbox.');
+  };
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShieldCheck
+            className={`h-5 w-5 ${verified ? 'text-emerald-500' : 'text-muted-foreground/40'}`}
+          />
+          <div>
+            <p className="text-sm font-medium">Email verified</p>
+            <p className="text-xs text-muted-foreground">
+              {verified ? 'Account is verified' : 'Verify to build trust'}
+            </p>
+          </div>
+        </div>
+        {verified ? (
+          <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+        ) : (
+          <Badge variant="outline" className="text-xs">
+            Pending
+          </Badge>
+        )}
+      </div>
+      {!verified && (
+        <Button onClick={sendVerification} size="sm" variant="outline" className="mt-3 w-full">
+          Send verification email
+        </Button>
+      )}
+    </Card>
+  );
+}
+
+// ─── Profile Tab ──────────────────────────────────────────────────────────────
+function ProfileTab({
+  user,
+  profile,
+  onSave,
+}: {
+  user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> };
+  profile: SeekerProfile | null;
+  onSave: () => void;
+}) {
+  const metaName = (user.user_metadata as Record<string, string> | undefined)?.full_name ?? '';
+  const metaPhone = (user.user_metadata as Record<string, string> | undefined)?.phone ?? '';
+
+  const [fullName, setFullName] = React.useState(profile?.full_name || metaName || '');
+  const [headline, setHeadline] = React.useState(profile?.headline ?? '');
+  const [phone, setPhone] = React.useState(profile?.phone || metaPhone || '');
+  const [location, setLocation] = React.useState(profile?.location ?? '');
+  const [bio, setBio] = React.useState(profile?.bio ?? '');
+  const [portfolioUrl, setPortfolioUrl] = React.useState(profile?.portfolioUrl ?? '');
+  const [skillInput, setSkillInput] = React.useState('');
+  const [skills, setSkills] = React.useState<string[]>(profile?.skills ?? []);
+  const [busy, setBusy] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!profile) return;
+    if (profile.full_name) setFullName(profile.full_name);
+    if (profile.phone) setPhone(profile.phone);
+    if (profile.headline) setHeadline(profile.headline);
+    if (profile.location) setLocation(profile.location);
+    if (profile.bio) setBio(profile.bio);
+    if (profile.portfolioUrl) setPortfolioUrl(profile.portfolioUrl);
+    if (profile.skills?.length) setSkills(profile.skills);
+  }, [profile]);
+
+  const completionItems = [
+    { label: 'Full name', done: !!fullName },
+    { label: 'Headline', done: !!headline },
+    { label: 'Bio', done: !!bio },
+    { label: 'Phone', done: !!phone },
+    { label: 'Location', done: !!location },
+    { label: 'Skills (3+)', done: skills.length >= 3 },
+    { label: 'Resume', done: !!profile?.resumeUrl },
+  ];
+  const completionPct = Math.round(
+    (completionItems.filter((i) => i.done).length / completionItems.length) * 100,
+  );
+
+  const addSkill = () => {
+    const s = skillInput.trim();
+    if (!s || skills.includes(s)) return;
+    setSkills([...skills, s]);
+    setSkillInput('');
+  };
+
+  const saveProfile = async () => {
+    if (!fullName.trim()) {
+      toast.error('Full name is required');
+      return;
+    }
+    setBusy(true);
+    try {
+      await saveUserProfile(user.id, {
+        full_name: fullName.trim(),
+        headline,
+        bio,
+        location,
+        phone,
+        portfolioUrl,
+        skills,
+      });
+      toast.success('Profile saved');
+      onSave();
+    } catch (e) {
+      toast.error((e as Error).message || 'Unable to save profile');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBusy(true);
+    try {
+      await uploadResumeFile(user.id, file);
+      toast.success('Resume uploaded');
+      onSave();
+    } catch (err) {
+      toast.error((err as Error).message || 'Upload failed');
+    } finally {
+      setBusy(false);
+      e.target.value = '';
+    }
+  };
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+      <div className="space-y-5">
+        {/* Personal info */}
+        <Card className="p-6">
+          <h3 className="font-display font-semibold mb-5">Personal information</h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label>Full name *</Label>
+              <Input
+                className="mt-1"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Amina Juma"
+              />
+            </div>
+            <div>
+              <Label>Phone</Label>
+              <Input
+                className="mt-1"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+255 7XX XXX XXX"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Professional headline</Label>
+              <Input
+                className="mt-1"
+                value={headline}
+                onChange={(e) => setHeadline(e.target.value)}
+                placeholder="e.g. Senior Software Engineer with 5 years in fintech"
+                maxLength={150}
+              />
+              <p className="text-xs text-muted-foreground mt-1 text-right">{headline.length}/150</p>
+            </div>
+            <div>
+              <Label>Location / Region</Label>
+              <Select value={location} onValueChange={setLocation}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select your region" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REGIONS.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {r}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Portfolio / Website</Label>
+              <Input
+                className="mt-1"
+                type="url"
+                value={portfolioUrl}
+                onChange={(e) => setPortfolioUrl(e.target.value)}
+                placeholder="https://"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Professional bio</Label>
+              <Textarea
+                className="mt-1"
+                rows={4}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Summarize your experience, strengths, and career goals..."
+                maxLength={500}
+              />
+              <p className="text-xs text-muted-foreground mt-1 text-right">{bio.length}/500</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Skills */}
+        <Card className="p-6">
+          <h3 className="font-display font-semibold mb-4">Skills</h3>
+          <div className="flex gap-2">
+            <Input
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addSkill();
+                }
+              }}
+              placeholder="Type a skill and press Enter"
+            />
+            <Button type="button" variant="secondary" size="sm" onClick={addSkill}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-3">
+            {skills.map((s) => (
+              <Badge key={s} variant="secondary" className="gap-1 pr-1.5">
+                {s}
+                <button
+                  onClick={() => setSkills(skills.filter((x) => x !== s))}
+                  className="hover:text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+            {skills.length === 0 && (
+              <p className="text-sm text-muted-foreground">No skills added yet</p>
+            )}
+          </div>
+        </Card>
+
+        {/* Resume */}
+        <Card className="p-6">
+          <h3 className="font-display font-semibold mb-4">Resume / CV</h3>
+          {profile?.resumeUrl ? (
+            <div className="flex items-center justify-between rounded-xl border border-border p-4">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-accent" />
+                <div>
+                  <p className="text-sm font-medium">Resume uploaded</p>
+                  <a
+                    href={profile.resumeUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-accent hover:underline"
+                  >
+                    View file ↗
+                  </a>
+                </div>
+              </div>
+              <Label htmlFor="resume-upload" className="cursor-pointer">
+                <Button variant="outline" size="sm" asChild>
+                  <span>
+                    <Upload className="h-3.5 w-3.5 mr-1.5" /> Replace
+                  </span>
+                </Button>
+              </Label>
+            </div>
+          ) : (
+            <Label htmlFor="resume-upload" className="cursor-pointer">
+              <div className="rounded-xl border-2 border-dashed border-border p-8 text-center hover:border-accent/50 transition-colors">
+                <Upload className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-sm font-medium">Upload your resume</p>
+                <p className="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX — max 5 MB</p>
+              </div>
+            </Label>
+          )}
+          <input
+            id="resume-upload"
+            type="file"
+            accept=".pdf,.doc,.docx"
+            className="sr-only"
+            onChange={handleResumeUpload}
+          />
+          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Or{' '}
+              <Link to={'/cv-builder' as never} className="text-accent hover:underline">
+                build a CV with our CV builder →
+              </Link>
+            </p>
+          </div>
+        </Card>
+
+        <div className="flex justify-end">
+          <Button
+            onClick={saveProfile}
+            disabled={busy}
+            className="bg-accent hover:bg-accent/90 text-accent-foreground px-8"
+          >
+            {busy ? 'Saving…' : 'Save profile'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Sidebar */}
+      <div className="space-y-4">
+        <Card className="p-5 sticky top-20">
+          <h3 className="font-display font-semibold text-sm mb-4">Profile strength</h3>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="relative h-16 w-16 shrink-0">
+              <svg className="h-16 w-16 -rotate-90" viewBox="0 0 36 36">
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  className="text-muted"
+                />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9"
+                  fill="none"
+                  strokeWidth="3"
+                  stroke={
+                    completionPct >= 80 ? '#10b981' : completionPct >= 50 ? '#f59e0b' : '#ef4444'
+                  }
+                  strokeDasharray={`${completionPct} ${100 - completionPct}`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
+                {completionPct}%
+              </span>
+            </div>
+            <div>
+              <p className="font-semibold text-sm">
+                {completionPct >= 80
+                  ? 'Strong profile'
+                  : completionPct >= 50
+                    ? 'Getting there'
+                    : 'Needs work'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {completionItems.filter((i) => !i.done).length} items missing
+              </p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {completionItems.map(({ label, done }) => (
+              <div key={label} className="flex items-center gap-2 text-xs">
+                <CheckCircle2
+                  className={`h-3.5 w-3.5 shrink-0 ${done ? 'text-emerald-500' : 'text-muted-foreground/30'}`}
+                />
+                <span className={done ? 'text-foreground' : 'text-muted-foreground line-through'}>
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ─── Applications Tab ─────────────────────────────────────────────────────────
+function ApplicationsTab({ userId }: { userId: string }) {
+  const { data: applications, isLoading } = useQuery({
+    queryKey: ['supabase-applications', userId],
+    queryFn: () => fetchUserApplications(userId),
+  });
+
+  if (isLoading)
+    return (
+      <div className="space-y-3 mt-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />
+        ))}
+      </div>
+    );
+
+  if (!applications?.length)
+    return (
+      <div className="mt-8 rounded-xl border border-dashed border-border p-12 text-center">
+        <Briefcase className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+        <p className="font-display font-semibold">No applications yet</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Start applying to jobs to track them here.
+        </p>
+        <Button asChild className="mt-4 bg-accent hover:bg-accent/90 text-accent-foreground">
+          <Link to="/jobs">Browse jobs</Link>
+        </Button>
+      </div>
+    );
+
+  return (
+    <div className="mt-4 space-y-3">
+      {applications.map((app) => (
+        <Card key={app.id} className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-semibold text-sm truncate">{app.jobTitle}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{app.companyName}</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                <Clock className="h-3 w-3" />
+                {new Date(app.created_at).toLocaleDateString('en-TZ', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })}
+              </p>
+            </div>
+            <span
+              className={`text-xs px-2.5 py-1 rounded-full font-medium shrink-0 ${STATUS_COLORS[app.status] ?? 'bg-muted text-muted-foreground'}`}
+            >
+              {STATUS_LABELS[app.status] ?? app.status}
+            </span>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ─── Saved Jobs Tab ───────────────────────────────────────────────────────────
+function SavedJobsTab({ userId }: { userId: string }) {
+  const queryClient = useQueryClient();
+  const { data: savedJobs, isLoading } = useQuery({
+    queryKey: ['supabase-saved-jobs', userId],
+    queryFn: () => fetchSavedJobs(userId),
+  });
+
+  const removeSaved = async (savedId: string) => {
+    await supabase.from('saved_jobs').delete().eq('id', savedId);
+    queryClient.invalidateQueries({ queryKey: ['supabase-saved-jobs', userId] });
+    toast.success('Removed from saved jobs');
+  };
+
+  if (isLoading)
+    return (
+      <div className="space-y-3 mt-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-16 rounded-xl bg-muted animate-pulse" />
+        ))}
+      </div>
+    );
+
+  if (!savedJobs?.length)
+    return (
+      <div className="mt-8 rounded-xl border border-dashed border-border p-12 text-center">
+        <Bookmark className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+        <p className="font-display font-semibold">No saved jobs</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Bookmark jobs you like to revisit them here.
+        </p>
+        <Button asChild className="mt-4 bg-accent hover:bg-accent/90 text-accent-foreground">
+          <Link to="/jobs">Browse jobs</Link>
+        </Button>
+      </div>
+    );
+
+  return (
+    <div className="mt-4 space-y-3">
+      {savedJobs.map((job) => (
+        <Card key={job.id} className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <Link
+                to="/jobs/$id"
+                params={{ id: job.job_id }}
+                className="font-semibold text-sm hover:text-accent transition-colors truncate block"
+              >
+                {job.jobTitle}
+              </Link>
+              <p className="text-xs text-muted-foreground">{job.companyName}</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button asChild variant="outline" size="sm" className="h-7 text-xs">
+                <Link to="/jobs/$id" params={{ id: job.job_id }}>
+                  View
+                </Link>
+              </Button>
+              <button
+                onClick={() => removeSaved(job.id)}
+                className="text-muted-foreground hover:text-destructive transition-colors"
+                aria-label="Remove"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ─── Employer View ────────────────────────────────────────────────────────────
 function EmployerView({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
 
   const { data: pendingEmployees } = useQuery({
     queryKey: ['pending-employees', userId],
     queryFn: async () => {
-      // Get companies owned by this user, then their pending employees
       const { data: companies } = await supabase
         .from('companies')
         .select('id,name,logo_url')
         .eq('owner_id', userId);
       if (!companies?.length) return [];
-
       const companyIds = companies.map((c: { id: string }) => c.id);
       const { data } = await (supabase as any)
         .from('company_employees')
@@ -657,22 +998,23 @@ function EmployerView({ userId }: { userId: string }) {
         )
         .in('company_id', companyIds)
         .order('verified', { ascending: true });
+      return (data ?? []).map((e: any) => ({
+        ...e,
+        companyName: companies.find((c: any) => c.id === e.company_id)?.name ?? '',
+      }));
+    },
+  });
 
-      return (data ?? []).map(
-        (e: {
-          id: string;
-          user_id: string;
-          job_title: string;
-          department: string | null;
-          verified: boolean;
-          company_id: string;
-          profiles: { full_name: string | null; headline: string | null } | null;
-        }) => ({
-          ...e,
-          companyName:
-            companies.find((c: { id: string; name: string }) => c.id === e.company_id)?.name ?? '',
-        }),
-      );
+  const { data: jobs } = useQuery({
+    queryKey: ['employer-jobs', userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('jobs')
+        .select('id,title,status,created_at,companies(name)')
+        .eq('posted_by', userId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      return (data ?? []) as EmployerJob[];
     },
   });
 
@@ -685,113 +1027,112 @@ function EmployerView({ userId }: { userId: string }) {
     queryClient.invalidateQueries({ queryKey: ['pending-employees', userId] });
   };
 
-  const { data: jobs } = useQuery({
-    queryKey: ['my-jobs', userId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('jobs')
-        .select('id,title,status,created_at,companies(name)')
-        .eq('posted_by', userId)
-        .order('created_at', { ascending: false });
-      return data ?? [];
-    },
-  });
   return (
-    <div className="mt-4 space-y-4">
+    <div className="mt-4 space-y-5">
+      {/* Employee verification */}
       {(pendingEmployees?.length ?? 0) > 0 && (
         <Card className="p-5">
           <h3 className="font-display font-semibold mb-4 flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-accent" /> Employee verification
           </h3>
           <div className="space-y-3">
-            {pendingEmployees!.map(
-              (emp: {
-                id: string;
-                user_id: string;
-                job_title: string;
-                department: string | null;
-                verified: boolean;
-                company_id: string;
-                companyName: string;
-                profiles: { full_name: string | null; headline: string | null } | null;
-              }) => (
-                <div
-                  key={emp.id}
-                  className="flex items-center justify-between rounded-xl border border-border p-3 gap-3"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm">{emp.profiles?.full_name ?? 'User'}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {emp.job_title}
-                      {emp.department ? ` · ${emp.department}` : ''} at {emp.companyName}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {emp.verified ? (
-                      <>
-                        <Badge className="bg-emerald-100 text-emerald-800 text-xs">Verified</Badge>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs"
-                          onClick={() => handleVerifyEmployee(emp.id, false)}
-                        >
-                          Revoke
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Badge variant="secondary" className="text-xs">
-                          Pending
-                        </Badge>
-                        <Button
-                          size="sm"
-                          className="h-7 text-xs bg-accent hover:bg-accent/90 text-accent-foreground"
-                          onClick={() => handleVerifyEmployee(emp.id, true)}
-                        >
-                          <CheckCircle2 className="h-3 w-3 mr-1" /> Verify
-                        </Button>
-                      </>
-                    )}
-                  </div>
+            {pendingEmployees!.map((emp: any) => (
+              <div
+                key={emp.id}
+                className="flex items-center justify-between rounded-xl border border-border p-3 gap-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">{emp.profiles?.full_name ?? 'User'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {emp.job_title}
+                    {emp.department ? ` · ${emp.department}` : ''} at {emp.companyName}
+                  </p>
                 </div>
-              ),
-            )}
+                <div className="flex items-center gap-2 shrink-0">
+                  {emp.verified ? (
+                    <>
+                      <Badge className="bg-emerald-100 text-emerald-800 text-xs">Verified</Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs"
+                        onClick={() => handleVerifyEmployee(emp.id, false)}
+                      >
+                        Revoke
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Badge variant="secondary" className="text-xs">
+                        Pending
+                      </Badge>
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs bg-accent hover:bg-accent/90 text-accent-foreground"
+                        onClick={() => handleVerifyEmployee(emp.id, true)}
+                      >
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Verify
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
       )}
 
-      <div className="flex items-center justify-between">
-        <h3 className="font-display font-semibold flex items-center gap-2">
-          <Briefcase className="h-4 w-4 text-accent" /> Your job listings
-        </h3>
-        <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-          <Link to="/post-job">Post a job</Link>
-        </Button>
-      </div>
-      <Card className="p-0 divide-y divide-border">
+      {/* Job listings */}
+      <Card className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-display font-semibold flex items-center gap-2">
+            <Briefcase className="h-4 w-4 text-accent" /> Your job listings
+          </h3>
+          <Button
+            asChild
+            size="sm"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground h-7"
+          >
+            <Link to="/post-job">Post new job</Link>
+          </Button>
+        </div>
         {jobs?.length ? (
-          jobs.map((j: EmployerJob) => (
-            <div key={j.id} className="p-4 flex items-center justify-between">
-              <div>
-                <Link
-                  to="/jobs/$id"
-                  params={{ id: String(j.id) }}
-                  className="font-medium hover:text-accent"
-                >
-                  {j.title}
-                </Link>
-                <div className="text-xs text-muted-foreground">
-                  {j.companies?.name} {new Date(j.created_at).toLocaleDateString()}
+          <div className="space-y-2">
+            {jobs.map((job) => (
+              <div
+                key={job.id}
+                className="flex items-center justify-between rounded-xl border border-border p-3 gap-3"
+              >
+                <div className="min-w-0">
+                  <Link
+                    to="/jobs/$id"
+                    params={{ id: job.id }}
+                    className="font-medium text-sm hover:text-accent transition-colors block truncate"
+                  >
+                    {job.title}
+                  </Link>
+                  <p className="text-xs text-muted-foreground">{job.companies?.name}</p>
                 </div>
+                <Badge
+                  variant="outline"
+                  className={`text-xs shrink-0 ${job.status === 'published' ? 'border-emerald-300 text-emerald-700' : ''}`}
+                >
+                  {job.status}
+                </Badge>
               </div>
-              <Badge variant="outline" className="uppercase text-[10px]">
-                {j.status}
-              </Badge>
-            </div>
-          ))
+            ))}
+          </div>
         ) : (
-          <div className="p-8 text-center text-sm text-muted-foreground">No jobs posted yet.</div>
+          <div className="rounded-xl border border-dashed border-border p-8 text-center">
+            <p className="text-sm text-muted-foreground">No job listings yet.</p>
+            <Button
+              asChild
+              size="sm"
+              className="mt-3 bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
+              <Link to="/post-job">Post your first job</Link>
+            </Button>
+          </div>
         )}
       </Card>
     </div>
