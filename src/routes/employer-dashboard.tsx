@@ -438,7 +438,7 @@ function JobsTab({ userId }: { userId: string }) {
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <Link
-                  to="/jobs/$id"
+                  to="/job/$id"
                   params={{ id: job.id }}
                   className="font-semibold text-sm hover:text-accent transition-colors block truncate"
                 >
@@ -475,7 +475,7 @@ function JobsTab({ userId }: { userId: string }) {
                   </SelectContent>
                 </Select>
                 <Button asChild variant="outline" size="sm" className="h-7 text-xs">
-                  <Link to="/jobs/$id" params={{ id: job.id }}>
+                  <Link to="/job/$id" params={{ id: job.id }}>
                     View
                   </Link>
                 </Button>
