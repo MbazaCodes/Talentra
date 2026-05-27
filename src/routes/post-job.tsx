@@ -584,8 +584,8 @@ function PostJobPage() {
 
                 <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
                   <div className="space-y-4">
-                    <FormItem>
-                      <FormLabel>Company logo</FormLabel>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium leading-none">Company logo</label>
                       <div
                         onDragOver={(event) => {
                           event.preventDefault();
@@ -636,10 +636,10 @@ function PostJobPage() {
                           value={logoProgress}
                         />
                       ) : null}
-                      <FormDescription>
+                      <p className="text-sm text-muted-foreground">
                         Optional logo upload for stronger employer recognition.
-                      </FormDescription>
-                    </FormItem>
+                      </p>
+                    </div>
 
                     <FormField
                       control={control}
