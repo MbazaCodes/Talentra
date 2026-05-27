@@ -10,6 +10,7 @@ import {
   Bookmark,
   User2,
   FileText,
+  BarChart3,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -136,6 +137,12 @@ export const SiteHeader = React.memo(function SiteHeader() {
                     <Link to={'/cv-builder' as never}>
                       <FileText className="h-4 w-4" />
                       CV Builder
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={'/employer-dashboard' as never}>
+                      <BarChart3 className="h-4 w-4" />
+                      Employer Hub
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
