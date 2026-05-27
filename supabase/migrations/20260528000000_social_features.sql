@@ -92,14 +92,17 @@ drop policy if exists "Users follow others"            on public.follows;
 drop policy if exists "Users unfollow"                 on public.follows;
 
 -- Anyone can see follow relationships (public social graph)
+drop policy if exists "Anyone can see follows" on public.follows;
 create policy "Anyone can see follows" on public.follows
   for select using (true);
 
 -- Authenticated users can follow
+drop policy if exists "Users follow others" on public.follows;
 create policy "Users follow others" on public.follows
   for insert with check (auth.uid() = follower_id);
 
 -- Users can unfollow (delete their own follows)
+drop policy if exists "Users unfollow" on public.follows;
 create policy "Users unfollow" on public.follows
   for delete using (auth.uid() = follower_id);
 
@@ -140,15 +143,19 @@ drop policy if exists "Authors create posts"        on public.posts;
 drop policy if exists "Authors update own posts"    on public.posts;
 drop policy if exists "Authors delete own posts"    on public.posts;
 
+drop policy if exists "Posts are publicly readable" on public.posts;
 create policy "Posts are publicly readable" on public.posts
   for select using (true);
 
+drop policy if exists "Authors create posts" on public.posts;
 create policy "Authors create posts" on public.posts
   for insert with check (auth.uid() = author_id);
 
+drop policy if exists "Authors update own posts" on public.posts;
 create policy "Authors update own posts" on public.posts
   for update using (auth.uid() = author_id);
 
+drop policy if exists "Authors delete own posts" on public.posts;
 create policy "Authors delete own posts" on public.posts
   for delete using (auth.uid() = author_id);
 
@@ -173,8 +180,11 @@ create index if not exists post_likes_user_id_idx on public.post_likes(user_id);
 
 alter table public.post_likes enable row level security;
 
+drop policy if exists "Likes are readable" on public.post_likes;
 create policy "Likes are readable" on public.post_likes for select using (true);
+drop policy if exists "Users like posts" on public.post_likes;
 create policy "Users like posts"   on public.post_likes for insert with check (auth.uid() = user_id);
+drop policy if exists "Users unlike posts" on public.post_likes;
 create policy "Users unlike posts" on public.post_likes for delete  using (auth.uid() = user_id);
 
 grant select on public.post_likes to anon;
@@ -239,4 +249,3 @@ drop trigger if exists posts_set_updated_at on public.posts;
 create trigger posts_set_updated_at
   before update on public.posts
   for each row execute function public.set_updated_at();
-
