@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { GripVertical, ExternalLink, Calendar, Building2 } from 'lucide-react';
@@ -104,7 +105,7 @@ export function ApplicationKanbanBoard() {
     }) => {
       const { error } = await supabase
         .from('applications')
-        .update({ status: newStatus })
+        .update({ status: newStatus as Database['public']['Enums']['application_status'] })
         .eq('id', applicationId);
 
       if (error) throw error;

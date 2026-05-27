@@ -2,7 +2,6 @@ import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { List, ListItem } from '@/components/ui/list';
 import { getAvailableSkills, getSkillWithQuestions, startAssessment, submitAssessment, getUserCurrentAssessment, getUserAssessmentHistory, getUserVerifiedSkills } from '@/lib/supabase-skills';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -84,9 +83,9 @@ export function SkillsAssessment() {
             <CardDescription>Choose a skill to take an assessment</CardDescription>
           </CardHeader>
           <CardContent>
-            <List>
+            <ul className="space-y-2">
               {skillsQuery.data?.map((skill) => (
-                <ListItem key={skill.id} className="flex items-center justify-between">
+                <li key={skill.id} className="flex items-center justify-between">
                   <div>
                     <div className="font-medium">{skill.name}</div>
                     <div className="text-sm text-muted-foreground">{skill.description}</div>
@@ -98,9 +97,9 @@ export function SkillsAssessment() {
                       <Button onClick={() => handleSelectSkill(skill)}>Take Test</Button>
                     )}
                   </div>
-                </ListItem>
+                </li>
               ))}
-            </List>
+            </ul>
           </CardContent>
         </Card>
 
@@ -114,7 +113,7 @@ export function SkillsAssessment() {
               {verifiedQuery.data?.length ? (
                 verifiedQuery.data.map((v) => (
                   <div key={v.id} className="flex items-center justify-between">
-                    <div>{v.skills?.name}</div>
+                    <div>{v.skill?.name}</div>
                     <div className="text-sm text-muted-foreground">{new Date(v.verified_at).toLocaleDateString()}</div>
                   </div>
                 ))
