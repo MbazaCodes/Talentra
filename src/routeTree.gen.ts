@@ -14,6 +14,7 @@ import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as JobSeekersRouteImport } from './routes/job-seekers'
 import { Route as EmployersRouteImport } from './routes/employers'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CvBuilderRouteImport } from './routes/cv-builder'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -45,6 +46,11 @@ const EmployersRoute = EmployersRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CvBuilderRoute = CvBuilderRouteImport.update({
+  id: '/cv-builder',
+  path: '/cv-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/cv-builder': typeof CvBuilderRoute
   '/dashboard': typeof DashboardRoute
   '/employers': typeof EmployersRoute
   '/job-seekers': typeof JobSeekersRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/cv-builder': typeof CvBuilderRoute
   '/dashboard': typeof DashboardRoute
   '/employers': typeof EmployersRoute
   '/job-seekers': typeof JobSeekersRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/cv-builder': typeof CvBuilderRoute
   '/dashboard': typeof DashboardRoute
   '/employers': typeof EmployersRoute
   '/job-seekers': typeof JobSeekersRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/contact'
+    | '/cv-builder'
     | '/dashboard'
     | '/employers'
     | '/job-seekers'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/contact'
+    | '/cv-builder'
     | '/dashboard'
     | '/employers'
     | '/job-seekers'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/contact'
+    | '/cv-builder'
     | '/dashboard'
     | '/employers'
     | '/job-seekers'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
+  CvBuilderRoute: typeof CvBuilderRoute
   DashboardRoute: typeof DashboardRoute
   EmployersRoute: typeof EmployersRoute
   JobSeekersRoute: typeof JobSeekersRoute
@@ -220,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cv-builder': {
+      id: '/cv-builder'
+      path: '/cv-builder'
+      fullPath: '/cv-builder'
+      preLoaderRoute: typeof CvBuilderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -290,6 +310,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
+  CvBuilderRoute: CvBuilderRoute,
   DashboardRoute: DashboardRoute,
   EmployersRoute: EmployersRoute,
   JobSeekersRoute: JobSeekersRoute,
@@ -300,13 +321,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

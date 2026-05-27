@@ -9,6 +9,7 @@ import {
   Search,
   Bookmark,
   User2,
+  FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -132,6 +133,12 @@ export const SiteHeader = React.memo(function SiteHeader() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link to={'/cv-builder' as never}>
+                      <FileText className="h-4 w-4" />
+                      CV Builder
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/post-job">
                       <Briefcase className="h-4 w-4" />
                       {t('post_job')}
@@ -181,6 +188,7 @@ export const SiteHeader = React.memo(function SiteHeader() {
                 <NavLink to="/post-job">{t('post_job')}</NavLink>
                 {isAdmin && <NavLink to="/admin">Admin</NavLink>}
                 <NavLink to="/dashboard">{t('dashboard')}</NavLink>
+                <NavLink to="/cv-builder">CV Builder</NavLink>
                 <NavLink to="/about">{t('about')}</NavLink>
                 <NavLink to="/contact">{t('contact')}</NavLink>
                 {user ? (

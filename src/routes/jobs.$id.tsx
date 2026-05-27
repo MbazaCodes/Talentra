@@ -12,10 +12,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { SiteHeader, SiteFooter, MobileBottomNav } from '@/components/site-chrome';
+import { ApplyDialog } from '@/components/apply-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { formatSalary, industryLabel, timeAgo } from '@/lib/kazi-data';
@@ -26,7 +26,6 @@ function JobDetail() {
   const { id } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [coverLetter, setCoverLetter] = React.useState('');
   const [reportOpen, setReportOpen] = React.useState(false);
 
   // Increment view count once per mount (fire-and-forget)
@@ -35,9 +34,7 @@ function JobDetail() {
   }, [id]);
   const [reportReason, setReportReason] = React.useState('scam');
   const [reportDetails, setReportDetails] = React.useState('');
-  const [submitting, setSubmitting] = React.useState(false);
   const [reporting, setReporting] = React.useState(false);
-  const [open, setOpen] = React.useState(false);
 
   const { data: existingReport } = useQuery({
     queryKey: ['job-report', id, user?.id],
@@ -86,24 +83,6 @@ function JobDetail() {
     const { error } = await supabase.from('saved_jobs').insert({ user_id: user.id, job_id: id });
     if (error && !error.message.includes('duplicate')) toast.error(error.message);
     else toast.success('Saved to your list');
-  };
-
-  const handleApply = async () => {
-    if (!user) return navigate({ to: '/auth' });
-    setSubmitting(true);
-    const { error } = await supabase.from('applications').insert({
-      job_id: id,
-      applicant_id: user.id,
-      cover_letter: coverLetter || null,
-    });
-    setSubmitting(false);
-    if (error) {
-      if (error.message.includes('duplicate')) toast.info("You've already applied to this job");
-      else toast.error(error.message);
-      return;
-    }
-    toast.success('Application sent!');
-    setOpen(false);
   };
 
   if (isLoading) {
@@ -233,50 +212,12 @@ function JobDetail() {
               <Button variant="outline" onClick={() => setReportOpen(true)}>
                 Report job
               </Button>
-              <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                    disabled={hasApplied}
-                  >
-                    {hasApplied ? 'Applied' : 'Apply now'}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Apply for {job.title}</DialogTitle>
-                  </DialogHeader>
-                  {user ? (
-                    <>
-                      <Textarea
-                        placeholder="Brief cover letter (optional)"
-                        rows={6}
-                        value={coverLetter}
-                        onChange={(e) => setCoverLetter(e.target.value)}
-                        maxLength={2000}
-                      />
-                      <DialogFooter>
-                        <Button
-                          onClick={handleApply}
-                          disabled={submitting}
-                          className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                        >
-                          {submitting ? 'Sending…' : 'Send application'}
-                        </Button>
-                      </DialogFooter>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm text-muted-foreground">Sign in to apply to this job.</p>
-                      <DialogFooter>
-                        <Button asChild>
-                          <Link to="/auth">Sign in</Link>
-                        </Button>
-                      </DialogFooter>
-                    </>
-                  )}
-                </DialogContent>
-              </Dialog>
+              <ApplyDialog
+                jobId={id}
+                jobTitle={job.title}
+                companyName={co?.name ?? ''}
+                hasApplied={!!hasApplied}
+              />
             </div>
           </div>
         </Card>
