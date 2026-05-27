@@ -26,7 +26,6 @@ import { JobCard, JobCardSkeleton, type JobCardData } from '@/components/job-car
 import { supabase } from '@/integrations/supabase/client';
 import { REGIONS, INDUSTRIES } from '@/lib/kazi-data';
 import { useT, useLang } from '@/lib/i18n';
-import heroImg from '@/assets/hero-kazi.jpg';
 
 export const Route = createFileRoute('/')({ component: LandingPage });
 
@@ -77,7 +76,7 @@ function LandingPage() {
       <SiteHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-background via-cream/60 to-background">
+      <section className="relative overflow-hidden bg-gradient-to-br from-background via-cream/60 to-background min-h-[480px]">
         <div className="container mx-auto px-4 py-12 md:py-20 grid md:grid-cols-2 gap-10 items-center">
           <div className="space-y-5">
             <Badge variant="secondary" className="bg-cream border border-border text-foreground/80">
@@ -111,7 +110,7 @@ function LandingPage() {
               <div className="sm:w-44 flex items-center gap-2 px-3 sm:border-l border-border">
                 <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
                 <Select value={region} onValueChange={setRegion}>
-                  <SelectTrigger className="border-0 shadow-none focus:ring-0 px-0 h-auto text-sm">
+                  <SelectTrigger className="border-0 shadow-none focus:ring-0 px-0 h-auto text-sm w-full">
                     <SelectValue placeholder={t('search_location')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -146,17 +145,43 @@ function LandingPage() {
             </div>
           </div>
 
-          {/* Hero image */}
+          {/* Hero illustration */}
           <div className="relative hidden md:block">
-            <div className="absolute -inset-4 bg-gradient-to-tr from-accent/15 via-peach/15 to-primary/10 rounded-4xl blur-2xl" />
-            <img
-              src={heroImg}
-              alt="Diverse Tanzanian professionals at work"
-              width={800}
-              height={800}
-              className="relative rounded-3xl shadow-xl object-cover aspect-square w-full border-4 border-background"
-              fetchPriority="high"
-            />
+            <div className="absolute -inset-4 bg-gradient-to-tr from-accent/15 via-peach/15 to-primary/10 rounded-[2rem] blur-2xl" />
+            <div className="relative rounded-3xl overflow-hidden shadow-xl border-4 border-background aspect-square w-full bg-gradient-to-br from-primary via-primary/90 to-accent/80 flex flex-col items-center justify-center gap-6 p-8">
+              {/* Decorative circles */}
+              <div className="absolute top-6 right-6 h-24 w-24 rounded-full bg-accent/20 blur-xl" />
+              <div className="absolute bottom-10 left-6 h-32 w-32 rounded-full bg-peach/20 blur-xl" />
+              {/* Content */}
+              <div className="relative z-10 text-center text-primary-foreground space-y-5 w-full max-w-xs">
+                <div className="font-display text-5xl font-bold tracking-tight">T</div>
+                <p className="font-display text-xl font-semibold">
+                  Tanzania's smarter
+                  <br />
+                  job network
+                </p>
+                {/* Fake job cards */}
+                {[
+                  { title: 'Software Engineer', co: 'TechCorp DSM', loc: 'Dar es Salaam' },
+                  { title: 'Finance Manager', co: 'NMB Bank', loc: 'Arusha' },
+                  { title: 'NGO Programme Lead', co: 'UNICEF Tanzania', loc: 'Dodoma' },
+                ].map((j, i) => (
+                  <div
+                    key={i}
+                    className={`rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 p-3 text-left transition-transform ${i === 1 ? 'translate-x-3' : i === 2 ? '-translate-x-1' : ''}`}
+                  >
+                    <p className="text-xs font-semibold text-white">{j.title}</p>
+                    <p className="text-[10px] text-white/70 mt-0.5">
+                      {j.co} · {j.loc}
+                    </p>
+                  </div>
+                ))}
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
+                  <span className="text-xs text-white/70">12,500+ active jobs</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
