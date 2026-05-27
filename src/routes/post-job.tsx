@@ -144,7 +144,7 @@ const schema = z
     companyWebsite: z.string().optional(),
     industry: z.string().optional(),
     companyLocation: z.string().optional(),
-    companyDescription: z.string().max(1000).optional(),
+    companyDescription: z.string().max(2000).optional(),
     jobTitle: z.string().min(3),
     slug: z.string(),
     category: z.string().min(1),
@@ -725,7 +725,7 @@ function PostJobPage() {
                           </FormControl>
                           <div className="flex justify-between text-xs text-muted-foreground">
                             <span>Optional — shown on your company profile</span>
-                            <span>{(field.value ?? '').length}/1000</span>
+                            <span>{(field.value ?? '').length}/2000</span>
                           </div>
                           <FormMessage />
                         </FormItem>
