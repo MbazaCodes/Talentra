@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { SiteHeader, SiteFooter, MobileBottomNav } from '@/components/site-chrome';
 import { JobCard, type JobCardData } from '@/components/job-card';
 import { supabase } from '@/integrations/supabase/client';
+import { RequestReference } from '@/components/request-reference';
 import { industryLabel } from '@/lib/kazi-data';
 
 export const Route = createFileRoute('/companies/$id')({

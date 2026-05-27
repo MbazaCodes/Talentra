@@ -27,7 +27,7 @@ const signupSchema = z
     email: z.string().email('Invalid email'),
     password: z.string().min(8, 'Minimum 8 characters'),
     confirmPassword: z.string(),
-    role: z.enum(['job_seeker', 'employer']),
+    role: z.enum(['job_seeker', 'employer', 'employee']),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -258,6 +258,7 @@ function AuthPage() {
                   >
                     <option value="job_seeker">Job seeker</option>
                     <option value="employer">Employer / Recruiter</option>
+                    <option value="employee">Employee (write references)</option>
                   </select>
                 </div>
                 <Button

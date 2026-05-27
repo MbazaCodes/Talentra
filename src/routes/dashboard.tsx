@@ -23,6 +23,7 @@ import {
   uploadResumeFile,
   SeekerProfile,
 } from '@/lib/supabase-data';
+import { EmployeeProfile } from '@/components/employee-profile';
 
 export const Route = createFileRoute('/dashboard')({ component: Dashboard });
 
@@ -41,6 +42,7 @@ function Dashboard() {
   }, [user, loading, navigate]);
 
   const isEmployer = roles.includes('employer') || roles.includes('admin');
+  const isEmployee = roles.includes('employee') || roles.includes('job_seeker');
   const profileQuery = useQuery({
     queryKey: ['supabase-profile', user?.id],
     enabled: !!user?.id,
@@ -126,6 +128,7 @@ function Dashboard() {
         <Tabs defaultValue={isEmployer ? 'employer' : 'seeker'} className="mt-6">
           <TabsList>
             <TabsTrigger value="seeker">Job seeker</TabsTrigger>
+            <TabsTrigger value="employee">Employee</TabsTrigger>
             {isEmployer && <TabsTrigger value="employer">Employer</TabsTrigger>}
           </TabsList>
           <TabsContent value="seeker">
@@ -138,6 +141,9 @@ function Dashboard() {
                 })
               }
             />
+          </TabsContent>
+          <TabsContent value="employee">
+            <EmployeeProfile />
           </TabsContent>
           {isEmployer && (
             <TabsContent value="employer">
@@ -422,6 +428,27 @@ function SeekerView({
     }
   };
 
+  const { data: sentRefs } = useQuery({
+    queryKey: ['sent-reference-requests', user.id],
+    queryFn: async () => {
+      // New table — cast to any until types are regenerated post-migration
+      const { data } = await (supabase as any)
+        .from('reference_requests')
+        .select('id,status,recommendation,rating,requested_at,completed_at,companies(name)')
+        .eq('seeker_id', user.id)
+        .order('requested_at', { ascending: false });
+      return (data ?? []) as Array<{
+        id: string;
+        status: string;
+        recommendation: string | null;
+        rating: number | null;
+        requested_at: string;
+        companies: { name: string } | null;
+      }>;
+    },
+    enabled: !!user.id,
+  });
+
   return (
     <div className="grid gap-4 lg:grid-cols-[1.6fr_0.9fr] mt-4">
       <div className="space-y-4">
@@ -501,6 +528,55 @@ function SeekerView({
             )}
           </div>
         </Card>
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-display text-lg font-semibold">My references</h3>
+            <Badge variant="secondary">{sentRefs?.length ?? 0}</Badge>
+          </div>
+          <div className="space-y-2">
+            {sentRefs?.length ? (
+              sentRefs.map(
+                (r: {
+                  id: string;
+                  status: string;
+                  recommendation: string | null;
+                  rating: number | null;
+                  requested_at: string;
+                  companies: { name: string } | null;
+                }) => (
+                  <div key={r.id} className="rounded-xl border border-border p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium truncate">
+                        {r.companies?.name ?? 'Company'}
+                      </p>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
+                          r.status === 'completed'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : r.status === 'accepted'
+                              ? 'bg-blue-100 text-blue-800'
+                              : r.status === 'pending'
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {r.status}
+                      </span>
+                    </div>
+                    {r.status === 'completed' && r.recommendation && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2 italic">
+                        "{r.recommendation}"
+                      </p>
+                    )}
+                  </div>
+                ),
+              )
+            ) : (
+              <p className="text-sm text-muted-foreground">No reference requests sent yet.</p>
+            )}
+          </div>
+        </Card>
+
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
