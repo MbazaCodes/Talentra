@@ -35,22 +35,6 @@ export const JobCard = React.memo(function JobCard({ job }: { job: JobCardData }
   const { user } = useAuth();
   const [saved, setSaved] = React.useState(false);
 
-  const { data: hasApplied } = useQuery({
-    queryKey: ['application', job.id, (useAuth().user ?? null)?.id],
-    enabled: !!useAuth().user?.id,
-    queryFn: async () => {
-      const currentUser = useAuth().user;
-      if (!currentUser) return false;
-      const { data } = await supabase
-        .from('applications')
-        .select('id')
-        .eq('job_id', job.id)
-        .eq('applicant_id', currentUser.id)
-        .maybeSingle();
-      return !!data;
-    },
-  });
-
   const handleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
