@@ -6,6 +6,7 @@ export type Role = 'job_seeker' | 'employer' | 'admin';
 export interface SeekerProfile {
   id: string;
   full_name: string | null;
+  avatarUrl?: string | null;
   email?: string;
   role?: Role;
   headline?: string | null;
@@ -60,6 +61,7 @@ export async function getUserProfile(uid: string): Promise<SeekerProfile | null>
   return {
     id: row.id,
     full_name: row.full_name,
+    avatarUrl: row.avatar_url ?? undefined,
     headline: row.headline,
     bio: row.bio,
     location: row.location,
@@ -98,6 +100,8 @@ export async function saveUserProfile(uid: string, profile: Partial<SeekerProfil
   if (profile.education !== undefined) updateData.education = profile.education;
   if (profile.portfolioUrl !== undefined) updateData.portfolio_url = profile.portfolioUrl;
   if (profile.resumeUrl !== undefined) updateData.resume_url = profile.resumeUrl;
+  if ((profile as { avatarUrl?: string | null }).avatarUrl !== undefined)
+    (updateData as Record<string, unknown>).avatar_url = (profile as { avatarUrl?: string | null }).avatarUrl;
 
   const { error } = await supabase
     .from('profiles')
@@ -222,6 +226,24 @@ export async function fetchSavedJobs(uid: string): Promise<SavedJobRecord[]> {
     companyName: item.jobs?.companies?.name ?? '',
     created_at: item.created_at,
   }));
+}
+
+export async function uploadAvatarFile(uid: string, file: File): Promise<string> {
+  const fileExt = file.name.split('.').pop() ?? 'jpg';
+  const filePath = `${uid}/avatar.${fileExt}`;
+
+  // Upsert (overwrite existing avatar)
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) throw uploadError;
+
+  const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+  // Save to profile
+  await supabase.from('profiles').update({ avatar_url: publicUrl, updated_at: new Date().toISOString() }).eq('id', uid);
+  return publicUrl;
 }
 
 export async function ensureUserDocument(uid: string, email: string, role: Role, fullName: string) {

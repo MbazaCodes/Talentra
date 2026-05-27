@@ -53,6 +53,10 @@ import {
 } from '@/lib/supabase-data';
 import { EmployeeProfile } from '@/components/employee-profile';
 import { EmployerBadge } from '@/components/employer-badge';
+import { AvatarUpload } from '@/components/avatar-upload';
+import { FollowStats } from '@/components/follow-stats';
+import { ProfilePosts } from '@/components/profile-posts';
+import { FollowButton } from '@/components/follow-button';
 import { REGIONS } from '@/lib/kazi-data';
 
 export const Route = createFileRoute('/dashboard')({ component: Dashboard });
@@ -127,11 +131,12 @@ function Dashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             {/* Avatar */}
-            <div className="h-14 w-14 rounded-2xl bg-accent/10 border border-border grid place-items-center shrink-0">
-              <span className="font-display text-xl font-bold text-accent">
-                {displayName[0]?.toUpperCase() ?? 'U'}
-              </span>
-            </div>
+            <AvatarUpload
+              avatarUrl={profile?.avatarUrl}
+              name={displayName}
+              size="lg"
+              editable={true}
+            />
             <div>
               <h1 className="font-display text-2xl font-bold leading-tight">{displayName}</h1>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -331,6 +336,14 @@ function OverviewTab({
           )}
         </Card>
 
+        {/* Posts feed */}
+        <ProfilePosts
+          profileUserId={user.id}
+          isOwner={true}
+          ownerName={profile?.full_name || user.email?.split('@')[0] || 'Me'}
+          ownerAvatarUrl={profile?.avatarUrl}
+        />
+
         {/* Profile incomplete warning */}
         {completionPct < 80 && (
           <Card className="p-5 border-amber-200 bg-amber-50/50">
@@ -373,9 +386,11 @@ function OverviewTab({
         {/* Profile card */}
         <Card className="p-5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-12 w-12 rounded-xl bg-accent/10 grid place-items-center">
-              <User2 className="h-6 w-6 text-accent" />
-            </div>
+            <AvatarUpload
+              avatarUrl={profile?.avatarUrl}
+              name={profile?.full_name ?? 'U'}
+              size="sm"
+            />
             <div>
               <p className="font-semibold text-sm">{profile?.full_name || 'Add your name'}</p>
               <p className="text-xs text-muted-foreground">
@@ -426,6 +441,11 @@ function OverviewTab({
               <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit profile
             </Link>
           </Button>
+        </Card>
+
+        {/* Follow stats */}
+        <Card className="p-5">
+          <FollowStats userId={user.id} />
         </Card>
 
         {/* Email verification */}
