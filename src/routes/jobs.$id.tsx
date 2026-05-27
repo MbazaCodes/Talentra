@@ -16,8 +16,9 @@ import {
 } from '@/components/ui/dialog';
 import { SiteHeader, SiteFooter, MobileBottomNav } from '@/components/site-chrome';
 import { ApplyDialog } from '@/components/apply-dialog';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, supabaseConfigured } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
+import { getUserProfile } from '@/lib/supabase-data';
 import { formatSalary, industryLabel, timeAgo } from '@/lib/kazi-data';
 
 export const Route = createFileRoute('/jobs/$id')({ component: JobDetail });
@@ -54,6 +55,28 @@ function JobDetail() {
   const { data: job, isLoading } = useQuery({
     queryKey: ['job', id],
     queryFn: async () => {
+      if (!supabaseConfigured) {
+        // Dev fallback so UI can be tested without real Supabase credentials
+        return {
+          id,
+          title: `Sample job ${id}`,
+          location: 'Dar es Salaam',
+          region: 'Dar es Salaam',
+          industry: 'software',
+          contract_type: 'Full-time',
+          salary_min: 1000000,
+          salary_max: 2000000,
+          salary_negotiable: false,
+          currency: 'TZS',
+          created_at: new Date().toISOString(),
+          deadline: null,
+          featured: false,
+          description: 'This is a development-only sample job description used when Supabase is not configured.',
+          companies: { id: 'devco', name: 'Dev Company', logo_url: null, description: null, location: null, verified: false },
+          views_count: 42,
+        } as any;
+      }
+
       const { data, error } = await supabase
         .from('jobs')
         .select('*,companies(id,name,logo_url,description,location,industry,website,verified)')
@@ -63,6 +86,68 @@ function JobDetail() {
       return data;
     },
   });
+
+  const { data: applicantCount } = useQuery({
+    queryKey: ['job-applicants-count', id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('applications')
+        .select('id', { count: 'exact', head: true })
+        .eq('job_id', id as string);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      if (!user) return null;
+      return getUserProfile(user.id);
+    },
+  });
+
+  const match = React.useMemo(() => {
+    if (!profile || !job) return { score: 0, breakdown: {} as Record<string, number> };
+    // Simple heuristic match scoring: location, industry, level/qualification, skills
+    let total = 0;
+    const breakdown: Record<string, number> = {};
+
+    // Location (25)
+    const locMatch =
+      (profile.location && job.region && profile.location === job.region) ||
+      (profile.location && job.location && profile.location === job.location)
+        ? 25
+        : 0;
+    breakdown.location = locMatch;
+    total += locMatch;
+
+    // Industry (25)
+    const industryMatch = profile.headline && job.industry && profile.headline.toLowerCase().includes(job.industry.toLowerCase()) ? 25 : profile?.skills?.some((s) => s.toLowerCase().includes(job.industry.toLowerCase())) ? 20 : 0;
+    breakdown.industry = industryMatch;
+    total += industryMatch;
+
+    // Level / qualification (25)
+    const levelMatch = (profile as any).education?.length && job.position_level ? 15 : 0;
+    breakdown.level = levelMatch;
+    total += levelMatch;
+
+    // Skills overlap (25)
+    let skillsScore = 0;
+    if (profile.skills && profile.skills.length > 0 && job.description) {
+      const jobText = job.description.toLowerCase();
+      const matches = profile.skills.filter((s: string) => s && jobText.includes(s.toLowerCase()));
+      const ratio = Math.min(matches.length / Math.max(1, profile.skills.length), 1);
+      skillsScore = Math.round(ratio * 25);
+    }
+    breakdown.skills = skillsScore;
+    total += skillsScore;
+
+    // Normalize to 0-100
+    const score = Math.min(100, Math.round(total));
+    return { score, breakdown };
+  }, [profile, job]);
 
   const { data: hasApplied } = useQuery({
     queryKey: ['application', id, user?.id],
@@ -153,7 +238,8 @@ function JobDetail() {
               <h1 className="font-display text-2xl md:text-3xl font-semibold leading-tight">
                 {job.title}
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <div className="flex items-center gap-3 mt-1">
+                <p className="text-muted-foreground">
                 <Link
                   to="/companies/$id"
                   params={{ id: co?.id ?? '' }}
@@ -162,7 +248,17 @@ function JobDetail() {
                   {co?.name}
                 </Link>
                 {co?.verified ? <BadgeCheck className="inline h-4 w-4 ml-1 text-accent" /> : null}
-              </p>
+                </p>
+                <div className="ml-2 flex items-center gap-2">
+                  <Badge className="text-xs bg-cream border border-border">
+                    Match {match.score}%
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <span className="text-xs text-muted-foreground">{applicantCount ?? 0} applied</span>
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <span className="text-xs text-muted-foreground">{job.views_count ?? 0} views</span>
+                </div>
+              </div>
             </div>
           </div>
 

@@ -13,6 +13,7 @@ import { Route as PostJobRouteImport } from './routes/post-job'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as JobSeekersRouteImport } from './routes/job-seekers'
 import { Route as EmployersRouteImport } from './routes/employers'
+import { Route as EmployerDashboardRouteImport } from './routes/employer-dashboard'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CvBuilderRouteImport } from './routes/cv-builder'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -41,6 +42,11 @@ const JobSeekersRoute = JobSeekersRouteImport.update({
 const EmployersRoute = EmployersRouteImport.update({
   id: '/employers',
   path: '/employers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmployerDashboardRoute = EmployerDashboardRouteImport.update({
+  id: '/employer-dashboard',
+  path: '/employer-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/cv-builder': typeof CvBuilderRoute
   '/dashboard': typeof DashboardRoute
+  '/employer-dashboard': typeof EmployerDashboardRoute
   '/employers': typeof EmployersRoute
   '/job-seekers': typeof JobSeekersRoute
   '/jobs': typeof JobsRouteWithChildren
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/cv-builder': typeof CvBuilderRoute
   '/dashboard': typeof DashboardRoute
+  '/employer-dashboard': typeof EmployerDashboardRoute
   '/employers': typeof EmployersRoute
   '/job-seekers': typeof JobSeekersRoute
   '/jobs': typeof JobsRouteWithChildren
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/cv-builder': typeof CvBuilderRoute
   '/dashboard': typeof DashboardRoute
+  '/employer-dashboard': typeof EmployerDashboardRoute
   '/employers': typeof EmployersRoute
   '/job-seekers': typeof JobSeekersRoute
   '/jobs': typeof JobsRouteWithChildren
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/cv-builder'
     | '/dashboard'
+    | '/employer-dashboard'
     | '/employers'
     | '/job-seekers'
     | '/jobs'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/cv-builder'
     | '/dashboard'
+    | '/employer-dashboard'
     | '/employers'
     | '/job-seekers'
     | '/jobs'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/cv-builder'
     | '/dashboard'
+    | '/employer-dashboard'
     | '/employers'
     | '/job-seekers'
     | '/jobs'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CvBuilderRoute: typeof CvBuilderRoute
   DashboardRoute: typeof DashboardRoute
+  EmployerDashboardRoute: typeof EmployerDashboardRoute
   EmployersRoute: typeof EmployersRoute
   JobSeekersRoute: typeof JobSeekersRoute
   JobsRoute: typeof JobsRouteWithChildren
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/employers'
       fullPath: '/employers'
       preLoaderRoute: typeof EmployersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/employer-dashboard': {
+      id: '/employer-dashboard'
+      path: '/employer-dashboard'
+      fullPath: '/employer-dashboard'
+      preLoaderRoute: typeof EmployerDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -312,6 +332,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CvBuilderRoute: CvBuilderRoute,
   DashboardRoute: DashboardRoute,
+  EmployerDashboardRoute: EmployerDashboardRoute,
   EmployersRoute: EmployersRoute,
   JobSeekersRoute: JobSeekersRoute,
   JobsRoute: JobsRouteWithChildren,
@@ -321,3 +342,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

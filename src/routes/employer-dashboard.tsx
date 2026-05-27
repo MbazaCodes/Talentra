@@ -40,7 +40,7 @@ import { useAuth } from '@/lib/auth';
 import { timeAgo } from '@/lib/kazi-data';
 import { AvatarUpload } from '@/components/avatar-upload';
 
-export const Route = createFileRoute('/employer-dashboard' as never)({
+export const Route = createFileRoute('/employer-dashboard')({
   component: EmployerDashboardPage,
 });
 

@@ -1,12 +1,14 @@
 import * as React from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { Bookmark, MapPin, Clock, Briefcase, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { formatSalary, industryLabel, timeAgo } from '@/lib/kazi-data';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
+import { ApplyDialog } from '@/components/apply-dialog';
 
 export type JobCardData = {
   id: string;
@@ -33,6 +35,23 @@ export const JobCard = React.memo(function JobCard({ job }: { job: JobCardData }
   const co = job.companies;
   const { user } = useAuth();
   const [saved, setSaved] = React.useState(false);
+  const navigate = useNavigate();
+
+  const { data: hasApplied } = useQuery({
+    queryKey: ['application', job.id, (useAuth().user ?? null)?.id],
+    enabled: !!useAuth().user?.id,
+    queryFn: async () => {
+      const currentUser = useAuth().user;
+      if (!currentUser) return false;
+      const { data } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('job_id', job.id)
+        .eq('applicant_id', currentUser.id)
+        .maybeSingle();
+      return !!data;
+    },
+  });
 
   const handleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -58,7 +77,20 @@ export const JobCard = React.memo(function JobCard({ job }: { job: JobCardData }
   };
 
   return (
-    <Link to="/jobs/$id" params={{ id: job.id }} className="group block">
+    <Link
+      to="/jobs/$id"
+      params={{ id: job.id }}
+      className="group block"
+      onClick={(e: React.MouseEvent) => {
+        const target = e.target as HTMLElement | null;
+        // If the click originated from an interactive element (button, link, input,
+        // or textarea), don't perform the fallback navigation. The save button
+        // already stops propagation.
+        if (target?.closest('button, a, input, textarea, [role="button"]')) return;
+        e.preventDefault();
+        navigate({ to: '/jobs/$id', params: { id: job.id } });
+      }}
+    >
       <Card className="p-4 hover:shadow-md hover:border-accent/40 transition-all duration-150">
         <div className="flex gap-3">
           <div className="shrink-0">
@@ -138,6 +170,14 @@ export const JobCard = React.memo(function JobCard({ job }: { job: JobCardData }
                 <Clock className="h-2.5 w-2.5" />
                 {timeAgo(job.created_at)}
               </span>
+              <div className="ml-2 shrink-0">
+                <ApplyDialog
+                  jobId={job.id}
+                  jobTitle={job.title}
+                  companyName={co?.name ?? ''}
+                  hasApplied={!!hasApplied}
+                />
+              </div>
             </div>
           </div>
         </div>
