@@ -135,7 +135,6 @@ function Dashboard() {
             <div>
               <h1 className="font-display text-2xl font-bold leading-tight">{displayName}</h1>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <p className="text-sm text-muted-foreground">{user.email}</p>
                 <Badge variant="secondary" className="text-xs">
                   {roleLabel}
                 </Badge>
