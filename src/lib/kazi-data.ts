@@ -1,17 +1,40 @@
 // Talentra domain constants — Tanzania-specific options used across filters & forms.
 
 export const REGIONS = [
+  // Mainland Tanzania — all 26 regions
   'Dar es Salaam',
   'Arusha',
-  'Mwanza',
   'Dodoma',
-  'Zanzibar',
+  'Geita',
+  'Iringa',
+  'Kagera',
+  'Katavi',
+  'Kigoma',
+  'Kilimanjaro',
+  'Lindi',
+  'Manyara',
+  'Mara',
   'Mbeya',
   'Morogoro',
-  'Tanga',
-  'Iringa',
+  'Mtwara',
+  'Mwanza',
+  'Njombe',
+  'Pwani',
+  'Rukwa',
+  'Ruvuma',
+  'Shinyanga',
+  'Simiyu',
+  'Singida',
+  'Songwe',
   'Tabora',
-  'Kilimanjaro',
+  'Tanga',
+  // Zanzibar — 5 regions
+  'Kaskazini Unguja',
+  'Kusini Unguja',
+  'Mjini Magharibi',
+  'Kaskazini Pemba',
+  'Kusini Pemba',
+  // Other
   'Remote',
 ] as const;
 

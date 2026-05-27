@@ -32,7 +32,7 @@ import { SiteHeader, SiteFooter } from '@/components/site-chrome';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { useAuth } from '@/lib/auth';
-import { INDUSTRIES } from '@/lib/kazi-data';
+import { INDUSTRIES, REGIONS } from '@/lib/kazi-data';
 import {
   Form,
   FormField,
@@ -57,6 +57,7 @@ type CompanyOption = Pick<
   | 'verified'
   | 'suspended'
   | 'premium'
+  | 'description'
 > & {
   jobs?: Pick<Database['public']['Tables']['jobs']['Row'], 'status'>[];
 };
@@ -143,6 +144,7 @@ const schema = z
     companyWebsite: z.string().optional(),
     industry: z.string().optional(),
     companyLocation: z.string().optional(),
+    companyDescription: z.string().max(1000).optional(),
     jobTitle: z.string().min(3),
     slug: z.string(),
     category: z.string().min(1),
@@ -187,7 +189,7 @@ const schema = z
         ctx.addIssue({
           path: ['companyLocation'],
           code: z.ZodIssueCode.custom,
-          message: 'Company location is required.',
+          message: 'Please select the company region.',
         });
       }
     }
@@ -297,7 +299,7 @@ function PostJobPage() {
       const { data, error } = await supabase
         .from('companies')
         .select(
-          'id,name,logo_url,website,industry,location,verified,suspended,premium,jobs(status)',
+          'id,name,logo_url,website,industry,location,description,verified,suspended,premium,jobs(status)',
         )
         .eq('owner_id', user!.id);
       if (error) throw error;
@@ -315,6 +317,7 @@ function PostJobPage() {
       companyWebsite: '',
       industry: '',
       companyLocation: '',
+      companyDescription: '',
       jobTitle: '',
       slug: '',
       category: 'software',
@@ -687,10 +690,43 @@ function PostJobPage() {
                       name="companyLocation"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Company location</FormLabel>
+                          <FormLabel>Company region</FormLabel>
                           <FormControl asChild>
-                            <Input placeholder="Dar es Salaam" {...field} />
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select region" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {REGIONS.map((r) => (
+                                  <SelectItem key={r} value={r}>
+                                    {r}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={control}
+                      name="companyDescription"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company description</FormLabel>
+                          <FormControl asChild>
+                            <Textarea
+                              rows={4}
+                              placeholder="Tell candidates who you are, what you do, and why it's a great place to work."
+                              {...field}
+                            />
+                          </FormControl>
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Optional — shown on your company profile</span>
+                            <span>{(field.value ?? '').length}/1000</span>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -718,8 +754,14 @@ function PostJobPage() {
                     <div>
                       <p className="text-base font-semibold">{selectedCompany.name}</p>
                       <p className="text-sm text-muted-foreground">
+                        {selectedCompany.location ? `${selectedCompany.location} · ` : ''}
                         {selectedCompany.website || 'No website set'}
                       </p>
+                      {selectedCompany.description && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {selectedCompany.description}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -1304,6 +1346,7 @@ function PostJobPage() {
           website: data.companyWebsite?.trim() || null,
           industry: data.industry || null,
           location: data.companyLocation || null,
+          description: data.companyDescription?.trim() || null,
         })
         .select('id')
         .single();
