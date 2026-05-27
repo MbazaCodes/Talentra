@@ -83,7 +83,8 @@
     "dev": "vite dev",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:vercel": "vite build --config vite.config.vercel.ts"
   },
   "sideEffects": false,
   "type": "module"
