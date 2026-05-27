@@ -1,11 +1,11 @@
 -- Add job alerts, notifications, and open-to-work flag
 
 -- Update profiles table to add open_to_work flag
-alter table public.profiles add column open_to_work boolean not null default false;
-alter table public.profiles add column open_to_work_updated_at timestamptz default now();
+alter table public.profiles add column if not exists open_to_work boolean not null default false;
+alter table public.profiles add column if not exists open_to_work_updated_at timestamptz default now();
 
 -- Job alerts table
-create table public.job_alerts (
+create table if not exists public.job_alerts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   keywords text[] not null default '{}',
@@ -20,11 +20,11 @@ create table public.job_alerts (
   unique (user_id)
 );
 
-create index job_alerts_user_id_idx on public.job_alerts(user_id);
-create index job_alerts_enabled_idx on public.job_alerts(enabled);
+create index if not exists job_alerts_user_id_idx on public.job_alerts(user_id);
+create index if not exists job_alerts_enabled_idx on public.job_alerts(enabled);
 
 -- Notifications table
-create table public.notifications (
+create table if not exists public.notifications (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   type text not null, -- 'job_alert', 'application_status', 'profile_view', etc.
@@ -38,14 +38,14 @@ create table public.notifications (
   created_at timestamptz not null default now()
 );
 
-create index notifications_user_id_idx on public.notifications(user_id);
-create index notifications_read_idx on public.notifications(read);
-create index notifications_user_read_idx on public.notifications(user_id, read);
-create index notifications_type_idx on public.notifications(type);
-create index notifications_created_at_idx on public.notifications(created_at desc);
+create index if not exists notifications_user_id_idx on public.notifications(user_id);
+create index if not exists notifications_read_idx on public.notifications(read);
+create index if not exists notifications_user_read_idx on public.notifications(user_id, read);
+create index if not exists notifications_type_idx on public.notifications(type);
+create index if not exists notifications_created_at_idx on public.notifications(created_at desc);
 
 -- Application status history (for tracking changes)
-create table public.application_status_history (
+create table if not exists public.application_status_history (
   id uuid primary key default gen_random_uuid(),
   application_id uuid not null references public.applications(id) on delete cascade,
   old_status public.application_status not null,
@@ -54,8 +54,8 @@ create table public.application_status_history (
   changed_at timestamptz not null default now()
 );
 
-create index application_status_history_application_id_idx on public.application_status_history(application_id);
-create index application_status_history_changed_at_idx on public.application_status_history(changed_at desc);
+create index if not exists application_status_history_application_id_idx on public.application_status_history(application_id);
+create index if not exists application_status_history_changed_at_idx on public.application_status_history(changed_at desc);
 
 -- Trigger to create notification when application status changes
 create or replace function public.notify_application_status_change()
@@ -113,6 +113,7 @@ begin
 end;
 $$;
 
+drop trigger if exists on_application_status_change on public.applications;
 create trigger on_application_status_change
 after update on public.applications
 for each row execute function public.notify_application_status_change();
@@ -120,14 +121,17 @@ for each row execute function public.notify_application_status_change();
 -- RLS policies for notifications
 alter table public.notifications enable row level security;
 
+drop policy if exists "Users can view their own notifications" on public.notifications;
 create policy "Users can view their own notifications"
 on public.notifications for select
 using (auth.uid() = user_id);
 
+drop policy if exists "System can insert notifications" on public.notifications;
 create policy "System can insert notifications"
 on public.notifications for insert
 with check (true);
 
+drop policy if exists "Users can update their own notifications" on public.notifications;
 create policy "Users can update their own notifications"
 on public.notifications for update
 using (auth.uid() = user_id);
@@ -135,18 +139,22 @@ using (auth.uid() = user_id);
 -- RLS policies for job alerts
 alter table public.job_alerts enable row level security;
 
+drop policy if exists "Users can view their own job alerts" on public.job_alerts;
 create policy "Users can view their own job alerts"
 on public.job_alerts for select
 using (auth.uid() = user_id);
 
+drop policy if exists "Users can create their own job alerts" on public.job_alerts;
 create policy "Users can create their own job alerts"
 on public.job_alerts for insert
 with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own job alerts" on public.job_alerts;
 create policy "Users can update their own job alerts"
 on public.job_alerts for update
 using (auth.uid() = user_id);
 
+drop policy if exists "Users can delete their own job alerts" on public.job_alerts;
 create policy "Users can delete their own job alerts"
 on public.job_alerts for delete
 using (auth.uid() = user_id);
@@ -154,6 +162,7 @@ using (auth.uid() = user_id);
 -- RLS policy for application status history
 alter table public.application_status_history enable row level security;
 
+drop policy if exists "Employers can view status history for their jobs" on public.application_status_history;
 create policy "Employers can view status history for their jobs"
 on public.application_status_history for select
 using (

@@ -1,7 +1,7 @@
 -- Skills Assessment System and Kanban Application Tracker
 
 -- Skills table with quiz content
-create table public.skills (
+create table if not exists public.skills (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
   description text,
@@ -13,7 +13,7 @@ create table public.skills (
 );
 
 -- Quiz questions for skill assessments
-create table public.skill_quiz_questions (
+create table if not exists public.skill_quiz_questions (
   id uuid primary key default gen_random_uuid(),
   skill_id uuid not null references public.skills(id) on delete cascade,
   question_text text not null,
@@ -26,10 +26,10 @@ create table public.skill_quiz_questions (
   created_at timestamptz not null default now()
 );
 
-create index skill_quiz_questions_skill_id_idx on public.skill_quiz_questions(skill_id);
+create index if not exists skill_quiz_questions_skill_id_idx on public.skill_quiz_questions(skill_id);
 
 -- User skill assessments (attempts and results)
-create table public.user_skill_assessments (
+create table if not exists public.user_skill_assessments (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   skill_id uuid not null references public.skills(id) on delete cascade,
@@ -43,12 +43,12 @@ create table public.user_skill_assessments (
   unique (user_id, skill_id) -- one active assessment per skill
 );
 
-create index user_skill_assessments_user_id_idx on public.user_skill_assessments(user_id);
-create index user_skill_assessments_skill_id_idx on public.user_skill_assessments(skill_id);
-create index user_skill_assessments_status_idx on public.user_skill_assessments(status);
+create index if not exists user_skill_assessments_user_id_idx on public.user_skill_assessments(user_id);
+create index if not exists user_skill_assessments_skill_id_idx on public.user_skill_assessments(skill_id);
+create index if not exists user_skill_assessments_status_idx on public.user_skill_assessments(status);
 
 -- User verified skills (badges)
-create table public.user_verified_skills (
+create table if not exists public.user_verified_skills (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   skill_id uuid not null references public.skills(id) on delete cascade,
@@ -58,45 +58,53 @@ create table public.user_verified_skills (
   unique (user_id, skill_id)
 );
 
-create index user_verified_skills_user_id_idx on public.user_verified_skills(user_id);
-create index user_verified_skills_skill_id_idx on public.user_verified_skills(skill_id);
+create index if not exists user_verified_skills_user_id_idx on public.user_verified_skills(user_id);
+create index if not exists user_verified_skills_skill_id_idx on public.user_verified_skills(skill_id);
 
 -- RLS Policies for Skills
 alter table public.skills enable row level security;
+drop policy if exists "Skills are publicly readable" on public.skills;
 create policy "Skills are publicly readable"
 on public.skills for select
 to authenticated, anon
 using (true);
 
 alter table public.skill_quiz_questions enable row level security;
+drop policy if exists "Quiz questions are publicly readable for active assessments" on public.skill_quiz_questions;
 create policy "Quiz questions are publicly readable for active assessments"
 on public.skill_quiz_questions for select
 to authenticated
 using (true);
 
 alter table public.user_skill_assessments enable row level security;
+drop policy if exists "Users can view their own assessments" on public.user_skill_assessments;
 create policy "Users can view their own assessments"
 on public.user_skill_assessments for select
 using (auth.uid() = user_id);
 
+drop policy if exists "Users can create assessments for themselves" on public.user_skill_assessments;
 create policy "Users can create assessments for themselves"
 on public.user_skill_assessments for insert
 with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own assessments" on public.user_skill_assessments;
 create policy "Users can update their own assessments"
 on public.user_skill_assessments for update
 using (auth.uid() = user_id);
 
 alter table public.user_verified_skills enable row level security;
+drop policy if exists "Users can view their own verified skills" on public.user_verified_skills;
 create policy "Users can view their own verified skills"
 on public.user_verified_skills for select
 using (auth.uid() = user_id);
 
+drop policy if exists "Users can view others' verified skills (public profile)" on public.user_verified_skills;
 create policy "Users can view others' verified skills (public profile)"
 on public.user_verified_skills for select
 to authenticated, anon
 using (true);
 
+drop policy if exists "System creates verified skills after assessment" on public.user_verified_skills;
 create policy "System creates verified skills after assessment"
 on public.user_verified_skills for insert
 with check (true);
@@ -146,6 +154,7 @@ begin
 end;
 $$;
 
+drop trigger if exists on_assessment_completed on public.user_skill_assessments;
 create trigger on_assessment_completed
 after update on public.user_skill_assessments
 for each row execute function public.create_verified_skill_on_pass();
